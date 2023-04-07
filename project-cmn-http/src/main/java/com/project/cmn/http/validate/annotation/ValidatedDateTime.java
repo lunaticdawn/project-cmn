@@ -30,7 +30,7 @@ public @interface ValidatedDateTime {
      *
      * @return 오류 메시지
      */
-    String message() default "날짜시간 포맷({format})이 일치하지 않습니다.";
+    String message() default "{invalid.date.format}";
 
     /**
      * validation group
