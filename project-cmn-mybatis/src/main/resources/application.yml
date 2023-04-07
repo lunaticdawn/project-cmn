@@ -1,0 +1,30 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: utf-8
+      enabled: true
+      force: true
+
+spring:
+  datasource:
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: jdbc:log4jdbc:mariadb://10.90.1.220:3306/conditioncoupon_db?useSSL=false&allowMultiQueries=true
+    username: conditioncoupon
+    password: conditioncoupon!@34
+  messages:
+    basename: "messages/messages"
+
+mybatis:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations:
+    - classpath*:mapper/**/*.xml
+  type-aliases-package: com.project.cmn.mybatis
+
+project:
+  default:
+    date-format: "yyyy-MM-dd"
+  access:
+    log:
+      enabled: true
+      filter: true

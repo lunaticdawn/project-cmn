@@ -1,0 +1,65 @@
+package com.project.cmn.mybatis.service;
+
+import com.project.cmn.mybatis.dto.FileInfoDto;
+import com.project.cmn.mybatis.dto.ProjectInfoDto;
+import com.project.cmn.mybatis.mariadb.service.MakeFilesForMariaDbService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.CaseUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import java.io.File;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class MakeFilesService {
+    private final MakeFilesForMariaDbService makeFilesForMariaDbService;
+
+    public void makeFiles(ProjectInfoDto param) {
+        Assert.notNull(param.getDbmsName(), "dbms_name is null!");
+        Assert.notNull(param.getProjectPath(), "project_path is null!");
+        Assert.notNull(param.getBasePackage(), "base_package is null!");
+        Assert.notNull(param.getTableName(), "table_name is null!");
+        Assert.notNull(param.getDtoPackage(), "dto_package is null!");
+
+        String filename = param.getTableName();
+
+        if (StringUtils.isNotBlank(param.getPrefixReplaceByBlank())) {
+            filename = RegExUtils.replaceFirst(param.getTableName(), param.getPrefixReplaceByBlank(), "");
+        }
+
+        filename = CaseUtils.toCamelCase(filename, true, '_');
+
+        String separator;
+
+        if (File.separator.equals("\\")) {
+            separator = "\\\\";
+        } else {
+            separator = "/";
+        }
+
+        String basePackageDir = param.getProjectPath()
+                + File.separator + "src" + File.separator + "main" + File.separator + "java"
+                + File.separator + RegExUtils.replaceAll(param.getBasePackage(), "\\.", separator);
+
+        FileInfoDto fileInfoDto = new FileInfoDto();
+
+        if (StringUtils.isNotBlank(param.getDtoPostfix())) {
+            fileInfoDto.setDtoFilename(filename + param.getDtoPostfix());
+        } else {
+            fileInfoDto.setDtoFilename(filename);
+        }
+
+        fileInfoDto.setDtoPath(basePackageDir + File.separator + RegExUtils.replaceAll(param.getDtoPackage(), "\\.", separator) + File.separator + fileInfoDto.getDtoFilename() + ".java");
+        fileInfoDto.setDtoPackage(param.getBasePackage() + "." + param.getDtoPackage());
+
+        if (StringUtils.equalsIgnoreCase(param.getDbmsName(), "mariadb")
+                || StringUtils.equalsIgnoreCase(param.getDbmsName(), "mysql")) {
+            makeFilesForMariaDbService.makeFiles(param, fileInfoDto);
+        }
+    }
+}
