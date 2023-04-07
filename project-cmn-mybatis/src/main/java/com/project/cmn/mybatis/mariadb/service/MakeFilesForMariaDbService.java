@@ -60,6 +60,7 @@ public class MakeFilesForMariaDbService {
     }
 
     private String getContent(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto, List<MariaDbColumnDto> columnsList, boolean isLocalDate, boolean isLocalTime, boolean isLocalDateTime) {
+        String importStr = "import ";
         StringBuilder buff = new StringBuilder();
 
         // Dto 생성
@@ -67,15 +68,15 @@ public class MakeFilesForMariaDbService {
         buff.append("\n");
 
         if (isLocalDate) {
-            buff.append("import ").append(JavaDataType.LOCAL_DATE.getPath()).append(";").append("\n");
+            buff.append(importStr).append(JavaDataType.LOCAL_DATE.getPath()).append(";").append("\n");
         }
 
         if (isLocalTime) {
-            buff.append("import ").append(JavaDataType.LOCAL_TIME.getPath()).append(";").append("\n");
+            buff.append(importStr).append(JavaDataType.LOCAL_TIME.getPath()).append(";").append("\n");
         }
 
         if (isLocalDateTime) {
-            buff.append("import ").append(JavaDataType.LOCAL_DATE_TIME.getPath()).append(";").append("\n");
+            buff.append(importStr).append(JavaDataType.LOCAL_DATE_TIME.getPath()).append(";").append("\n");
         }
 
         buff.append("import com.fasterxml.jackson.annotation.JsonProperty;").append("\n");
