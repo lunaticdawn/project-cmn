@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class MariaDbColumnDto extends ColumnDto {
+public class MariaDbColumnDto {
     /**
      * 열이 포함된 테이블이 속한 스키마(데이터베이스)의 이름입니다.
      */
