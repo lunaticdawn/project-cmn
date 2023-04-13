@@ -24,7 +24,7 @@ import org.springframework.lang.NonNull;
  */
 @Slf4j
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "project.datasource", value = "type", havingValue = "ds")
+@ConditionalOnProperty(prefix = "project.datasource", name = "type", havingValue = "ds")
 public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private DataSourceConfig dataSourceConfig;
 

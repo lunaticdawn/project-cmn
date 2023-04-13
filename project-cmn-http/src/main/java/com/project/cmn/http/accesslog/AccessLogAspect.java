@@ -13,16 +13,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Aspect
 @Configuration
-@ConditionalOnProperty(prefix = "project.access.log", value = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "project.access.log", name = "enabled", havingValue = "true")
 public class AccessLogAspect {
     /**
      * StopWatch 로깅을 위한 AOP 설정
      *
      * @param pjp {@link ProceedingJoinPoint}
      * @return 메소드의 리턴 값
-     * @throws Throwable {@link Throwable}
+     * @throws Throwable {@link Throwable} 메소드 실행 시 발생하는 Exception
      */
-    @Around("execution(* com.project..*Controller.*(..)) || execution(* com.project..*Service.*(..)) || execution(* com.project..*ServiceImpl.*(..)) || execution(* com.project..*Mapper.*(..))")
+    @Around("execution(* com.project..*Controller.*(..)) || execution(* com.project..*Service.*(..)) || execution(* com.project..*Impl.*(..)) || execution(* com.project..*Mapper.*(..))")
     public Object arroundLogging(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         String executeMethodName = signature.getMethod().getName();

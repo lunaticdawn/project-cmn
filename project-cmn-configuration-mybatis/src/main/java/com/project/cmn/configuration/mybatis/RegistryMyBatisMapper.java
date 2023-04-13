@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 @Slf4j
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "project.mybatis", value = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "project.mybatis", name = "enabled", havingValue = "true")
 public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private MyBatisConfig myBatisConfig;
 

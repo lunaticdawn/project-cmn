@@ -28,3 +28,14 @@ project:
     log:
       enabled: true
       filter: true
+  exceptions:
+    item-list:
+      - name: "ConstraintViolationException"
+        status: 400
+        code: "400"
+      - name: "MethodArgumentNotValidException"
+        status: 400
+        code: "400"
+      - name: "InvalidValueException"
+        status: 400
+        code: "400"

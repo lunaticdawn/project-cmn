@@ -23,7 +23,7 @@ import org.springframework.lang.NonNull;
  */
 @Slf4j
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "project.datasource", value = "type", havingValue = "xa")
+@ConditionalOnProperty(prefix = "project.datasource", name = "type", havingValue = "xa")
 public class RegistryXADataSource implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private DataSourceConfig dataSourceConfig;
 
