@@ -191,26 +191,26 @@ project:
 
 - com.project.cmn.configuration.mybatis.MyBatisConfig
 
-| 속성                        | Mapping Class                                                     | 설명               |
-|---------------------------|-------------------------------------------------------------------|------------------|
-| project.mybatis           | com.project.cmn.configuration.mybatis.MyBatisConfig               | MyBatis 설정       |
-| project.mybatis.enabled   | Boolean                                                           | MyBatis 설정 사용 여부 |
-| project.mybatis.item-list | java.util.List<com.project.cmn.configuration.mybatis.MyBatisItem> | 각각의 MyBatis 설정   |
+| 속성                         | Mapping Class                                                      | 설명                |
+|----------------------------|--------------------------------------------------------------------|-------------------|
+| project.mybatis            | com.project.cmn.configuration.mybatis.MyBatisConfig                | MyBatis 설정        |
+| project.mybatis.enabled    | Boolean                                                            | MyBatis 설정 사용 여부  |
+| project.mybatis.item-list  | java.util.List<com.project.cmn.configuration.mybatis.MyBatisItem>  | 각각의 MyBatis 설정    |
 
 - com.project.cmn.configuration.mybatis.MyBatisItem
 
-| 속성                        | 타입                               | 필수여부 | 설명                                                                                                                                                 |
-|---------------------------|----------------------------------|------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| enabled                   | Boolean                          | 필수   | 설정 사용 여부                                                                                                                                           |
-| config-location           | String                           | 필수   | MyBatis 설정 파일 위치. org.mybatis.spring.SqlSessionFactoryBean 의 configLocation.<br/>ex) classpath:mybatis/mybatis-config.xml                          |
-| datasource-name           | String                           | 필수   | 사용할 DataSource 명. org.mybatis.spring.SqlSessionFactoryBean 의 dataSource                                                                            |
-| sql-session-factory-name  | String                           | 필수   | org.apache.ibatis.session.SqlSessionFactory 의 이름                                                                                                   |
-| sql-session-template-name | String                           | 필수   | org.mybatis.spring.SqlSessionTemplate 의 이름                                                                                                         |
-| mapper-base-package       | String                           | 필수   | Mapper 클래스의 패키지 경로. org.mybatis.spring.mapper.MapperScannerConfigurer 의 basePackage                                                                |
-| mapper-locations          | java.util.List<java.lang.String> | 필수   | 쿼리 XML 파일의 위치들. {@link org.mybatis.spring.SqlSessionFactoryBean}의 mapperLocations.<br/>ex)classpath*:mapper/**/*.xml                               |
-| type-aliases-packages     | java.util.List<java.lang.String> | 필수   | ParameterType, ResultType 으로 사용할 클래스들이 있는 Base 패키지들                                                                                                |
-| primary                   | Boolean                          | 옵션   | @Primary  선언 여부                                                                                                                                    |
-| annotation-class-name     | String                           | 옵션   | Mapper 로 등록할 Annotation Class 이름. org.mybatis.spring.mapper.MapperScannerConfigurer 의 annotationClass.<br/>기본 org.apache.ibatis.annotations.Mapper |
+| 속성                         | 타입                                | 필수여부  | 설명                                                                                                                                                  |
+|----------------------------|-----------------------------------|-------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| enabled                    | Boolean                           | 필수    | 설정 사용 여부                                                                                                                                            |
+| config-location            | String                            | 필수    | MyBatis 설정 파일 위치. org.mybatis.spring.SqlSessionFactoryBean 의 configLocation.<br/>ex) classpath:mybatis/mybatis-config.xml                           |
+| datasource-name            | String                            | 필수    | 사용할 DataSource 명. org.mybatis.spring.SqlSessionFactoryBean 의 dataSource                                                                             |
+| sql-session-factory-name   | String                            | 필수    | org.apache.ibatis.session.SqlSessionFactory 의 이름                                                                                                    |
+| sql-session-template-name  | String                            | 필수    | org.mybatis.spring.SqlSessionTemplate 의 이름                                                                                                          |
+| mapper-base-package        | String                            | 필수    | Mapper 클래스의 패키지 경로. org.mybatis.spring.mapper.MapperScannerConfigurer 의 basePackage                                                                 |
+| mapper-locations           | java.util.List<java.lang.String>  | 필수    | 쿼리 XML 파일의 위치들. {@link org.mybatis.spring.SqlSessionFactoryBean}의 mapperLocations.<br/>ex)classpath*:mapper/**/*.xml                                |
+| type-aliases-packages      | java.util.List<java.lang.String>  | 필수    | ParameterType, ResultType 으로 사용할 클래스들이 있는 Base 패키지들                                                                                                 |
+| primary                    | Boolean                           | 옵션    | @Primary  선언 여부                                                                                                                                     |
+| annotation-class-name      | String                            | 옵션    | Mapper 로 등록할 Annotation Class 이름. org.mybatis.spring.mapper.MapperScannerConfigurer 의 annotationClass.<br/>기본 org.apache.ibatis.annotations.Mapper  |
 
 ex)
 
@@ -242,3 +242,28 @@ project:
           - "com.project.cmn.oracle"
         mapper-base-package: "com.project.cmn.oracle"
 ```
+# Exception Handler 설정에 대해
+
+1. Exception 별로 status, code, view 를 다르게 가기 위해서는 설정이 필요
+2. 설정을 하지 않으면 HttpStatus.INTERNAL_SERVER_ERROR 와 MappingJackson2JsonView 가 기본
+
+## 설정 속성
+
+- com.project.cmn.http.exception.config.ExceptionsConfig
+
+| 속성                                    | 타입                                                                   | 필수여부  | 기본값  | 설명                   |
+|---------------------------------------|----------------------------------------------------------------------|-------|------|----------------------|
+| project.exceptions                    | com.project.cmn.http.exception.config.ExceptionsConfig               | 옵션    | -    | Exceptions 설정        |
+| project.exceptions.default-status     | int                                                                  | 옵션    | 500  | 기본 응답 Http Status    |
+| project.exceptions.default-view-name  | String                                                               | 옵션    | -    | 기본 응답 View           |
+| project.exceptions.item-list          | java.util.List<com.project.cmn.http.exception.config.ExceptionItem>  | 옵션    | -    | 각 Exception 에 대한 설정  |
+
+- com.project.cmn.http.exception.config.ExceptionItem
+
+| 속성         | 타입     | 필수여부 | 기본값 | 설명                                         |
+|------------|--------|------|-----|--------------------------------------------|
+| name       | String | 필수   | -   | 설정할 Exception 의 Simple Name                |
+| status     | int    | 필수   | -   | response 의 http status 값                   |
+| code       | String | 필수   | -   | 응답 코드                                      |
+| desc       | String | 옵션   | -   | 설명                                         |
+| view-name  | String | 옵션   | -   | Exception Handler 에서 처리한 결과를 보여줄 View 의 이름 |

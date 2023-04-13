@@ -28,7 +28,7 @@ public class ValidationUtils {
      * @param groups Validation 을 체크할 그룹
      */
     public static void validate(Object target, Class<?>... groups) {
-        Set<ConstraintViolation<Object>> result = null;
+        Set<ConstraintViolation<Object>> result;
 
         // 대상 객체가 List 인 경우와 아닌 경우를 나누어 처리
         if (target instanceof List<?> lists) {

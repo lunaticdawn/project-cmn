@@ -1,45 +1,70 @@
 package com.project.cmn.http.exception.handler;
 
+import com.project.cmn.http.WebCmnConstants;
 import com.project.cmn.http.accesslog.AccessLog;
 import com.project.cmn.http.accesslog.AccessLogDto;
-import com.project.cmn.http.exception.ErrorDto;
-import com.project.cmn.http.exception.Exceptions;
-import com.project.cmn.http.exception.InValidValueException;
+import com.project.cmn.http.exception.InvalidValueException;
+import com.project.cmn.http.exception.config.ExceptionItem;
+import com.project.cmn.http.exception.config.ExceptionsConfig;
 import com.project.cmn.http.util.MessageUtils;
 import com.project.cmn.http.validate.ConstraintViolationDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+/**
+ * 기본 Exception Handler. 추가로 정의한 Exception 에 대해 처리해야 하는 경우에는 이 클래스를 상속받아 정의한다.
+ */
 @Slf4j
-@RequiredArgsConstructor
 @ControllerAdvice(basePackages = "com.project")
 public class CommonExceptionHandler {
+    private final Map<String, ExceptionItem> exceptionsMap = new HashMap<>();
+    private int status= HttpStatus.INTERNAL_SERVER_ERROR.value();
+    private String code = String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    private String viewName;
+
+    /**
+     * 생성자
+     *
+     * @param exceptionsConfig {@link ExceptionsConfig} Exception 처리에 대한 설정
+     */
+    public CommonExceptionHandler(ExceptionsConfig exceptionsConfig) {
+        if (exceptionsConfig != null) {
+            this.status = exceptionsConfig.getDefaultStatus() == 0 ? HttpStatus.INTERNAL_SERVER_ERROR.value() : exceptionsConfig.getDefaultStatus();
+            this.viewName = StringUtils.isBlank(exceptionsConfig.getDefaultViewName()) ? null : exceptionsConfig.getDefaultViewName();
+
+            if (exceptionsConfig.getItemList() != null && !exceptionsConfig.getItemList().isEmpty()) {
+                for (ExceptionItem item : exceptionsConfig.getItemList()) {
+                    exceptionsMap.put(item.getName(), item);
+                }
+            }
+        } else {
+            this.viewName = null;
+        }
+    }
 
     /**
      * {@link javax.validation.Validator} 에서 발생한 {@link ConstraintViolationException} 을 처리한다.
      *
      * @param exception {@link ConstraintViolationException}
-     * @return {@link ResponseEntity}
+     * @return {@link ModelAndView}
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorDto> constraintViolationExceptionHandler(ConstraintViolationException exception) {
-        ErrorDto errorDto = new ErrorDto();
+    protected ModelAndView constraintViolationExceptionHandler(ConstraintViolationException exception) {
         Set<ConstraintViolation<?>> constraintViolationSet = exception.getConstraintViolations();
 
         ConstraintViolationDto constraintViolationDto;
@@ -64,32 +89,28 @@ public class CommonExceptionHandler {
             constraintViolationList.add(constraintViolationDto);
         }
 
-        errorDto.setConstraintViolationList(this.sortConstraintViolationList(constraintViolationList));
-        errorDto.setResMsg(constraintViolationList.get(0).getMessage());
-
-        return getResponseEntity(exception, errorDto);
+        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList));
     }
 
     /**
      * {@link org.springframework.validation.annotation.Validated} 를 통해 발생한 {@link MethodArgumentNotValidException} 을 처리한다.
      *
      * @param exception {@link MethodArgumentNotValidException}
-     * @return {@link ResponseEntity}
+     * @return {@link ModelAndView}
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorDto> methodArgumentNotValidExceptionHhandler(MethodArgumentNotValidException exception) {
-        ErrorDto errorDto = new ErrorDto();
+    protected ModelAndView methodArgumentNotValidExceptionHhandler(MethodArgumentNotValidException exception) {
         BindingResult bindingResult = exception.getBindingResult();
+        List<ConstraintViolationDto> constraintViolationList = new ArrayList<>();
 
         if (bindingResult.getFieldErrorCount() > 0) {
             List<FieldError> fieldErrorList = bindingResult.getFieldErrors();
-
             ConstraintViolationDto constraintViolationDto;
-            List<ConstraintViolationDto> constraintViolationList = new ArrayList<>();
 
             for (FieldError fieldError : fieldErrorList) {
                 constraintViolationDto = ConstraintViolationDto.builder()
                         .invalidValue(fieldError.getRejectedValue())
+                        .message(fieldError.getDefaultMessage())
                         .messageTemplate(fieldError.getCode())
                         .propertyPathName(fieldError.getField())
                         .propertyName(this.getPropertyName(fieldError.getField()))
@@ -105,11 +126,116 @@ public class CommonExceptionHandler {
                 constraintViolationList.add(constraintViolationDto);
             }
 
-            errorDto.setConstraintViolationList(this.sortConstraintViolationList(constraintViolationList));
-            errorDto.setResMsg(constraintViolationList.get(0).getMessage());
         }
 
-        return getResponseEntity(exception, errorDto);
+        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList));
+    }
+
+    /**
+     * {@link InvalidValueException} 을 처리한다.
+     *
+     * @param exception {@link InvalidValueException}
+     * @return {@link ModelAndView}
+     */
+    @ExceptionHandler(InvalidValueException.class)
+    protected ModelAndView inValidValueExceptionHandler(InvalidValueException exception) {
+        String argName = StringUtils.defaultIfEmpty(MessageUtils.getMessage(exception.getFieldName()), exception.getFieldName());
+        String message = null;
+
+        ExceptionItem exceptionItem = this.getExceptionItem(exception);
+
+        if (exceptionItem != null) {
+            message = MessageUtils.getMessage(exceptionItem.getCode(), argName);
+        }
+
+        if (StringUtils.isBlank(message)) {
+            message = exception.getMessage();
+        }
+
+        return getResponse(exception, message);
+    }
+
+    /**
+     * {@link Exception} 을 처리한다.
+     *
+     * @param exception {@link Exception}
+     * @return {@link ModelAndView}
+     */
+    @ExceptionHandler({Exception.class})
+    protected ModelAndView exceptionHandler(Exception exception) {
+        return getResponse(exception, exception.getMessage());
+    }
+
+    /**
+     * Exception 에 대한 Response 를 가져온다.
+     *
+     * @param exception 발생한 Exception
+     * @param message 결과 메시지
+     * @return Exception 에 대한 Response
+     */
+    protected ModelAndView getResponse(Exception exception, String message) {
+        if (exception instanceof ConstraintViolationException
+            || exception instanceof MethodArgumentNotValidException) {
+            log.error(exception.getMessage());
+        } else {
+            log.error(exception.getMessage(), exception);
+        }
+
+        // 각 Exception 에 대한 개별 설정 적용
+        ExceptionItem exceptionItem = this.getExceptionItem(exception);
+
+        if (exceptionItem != null) {
+            status = exceptionItem.getStatus();
+            code = exceptionItem.getCode();
+
+            // 코드에 대한 메시지가 설정되어 있다면
+            if (StringUtils.isNotBlank(MessageUtils.getMessage(code))) {
+                message = MessageUtils.getMessage(code);
+            }
+
+            if (StringUtils.isNotBlank(exceptionItem.getViewName())) {
+                viewName = exceptionItem.getViewName();
+            }
+        }
+
+        AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
+
+        // DB 에 이력을 넣을 수 있도록 AccessLogDto 에 결과를 담는다.
+        accessLogDto.setHttpStatus(status);
+        accessLogDto.setResCode(code);
+        accessLogDto.setResMsg(message);
+
+        // 응답을 만든다.
+        ModelAndView mav = new ModelAndView();
+
+        mav.addObject(WebCmnConstants.ResponseKeys.RES_STATUS.code(), status);
+        mav.addObject(WebCmnConstants.ResponseKeys.RES_CODE.code(), code);
+        mav.addObject(WebCmnConstants.ResponseKeys.RES_MSG.code(), message);
+
+        if (StringUtils.startsWith(accessLogDto.getRequestHeader().get("content-type"), MediaType.APPLICATION_JSON_VALUE)) {
+            mav.setView(new MappingJackson2JsonView());
+        } else {
+            if (StringUtils.isNotBlank(viewName)) {
+                mav.setViewName(viewName);
+            } else {
+                mav.setView(new MappingJackson2JsonView());
+            }
+        }
+
+        return mav;
+    }
+
+    /**
+     * 제약조건 위반에 대한 Response 를 가져온다.
+     *
+     * @param exception 제약조건 위반 관련 Exception
+     * @param constraintViolationList 제약조건 위반 리스트
+     * @return 제약조건 위반에 대한 Response
+     */
+    protected ModelAndView getResponse(Exception exception, List<ConstraintViolationDto> constraintViolationList) {
+        ModelAndView mav = this.getResponse(exception, constraintViolationList.get(0).getMessage());
+
+        return mav.addObject(WebCmnConstants.ResponseKeys.CONSTRAINT_VIOLATION_LIST.code(), constraintViolationList);
     }
 
     /**
@@ -130,7 +256,7 @@ public class CommonExceptionHandler {
      */
     private String getConstraintViolationMessage(ConstraintViolationDto constraintViolationDto) {
         String argName = StringUtils.defaultIfEmpty(MessageUtils.getMessage(constraintViolationDto.getPropertyName()), constraintViolationDto.getPropertyName());
-        String message = MessageUtils.getMessage(constraintViolationDto.getMessage(), argName);
+        String message = MessageUtils.getMessage(constraintViolationDto.getMessage(), argName); // 제약조건 annotation 의 message 값으로 message code 값을 준 경우, 메시지가 만들어짐
 
         // 지정한 message 는 없는데, message template 이 존재하는 경우
         if (StringUtils.isBlank(message) && StringUtils.isNotBlank(constraintViolationDto.getMessageTemplate())) {
@@ -163,7 +289,7 @@ public class CommonExceptionHandler {
         String propertyPathName = constraintViolationDto.getPropertyPathName();
         String[] propertyPaths;
         String nextPropertyName;
-        String leafClassName = null;
+        String leafClassName;
 
         try {
             while (true) {
@@ -243,70 +369,12 @@ public class CommonExceptionHandler {
     }
 
     /**
-     * {@link InValidValueException} 을 처리한다.
+     * Exception 에 대한 설정을 가져온다.
      *
-     * @param exception {@link InValidValueException}
-     * @return {@link ResponseEntity}
+     * @param exception 설정을 가져올 Exception
+     * @return Exception 에 대한 설정
      */
-    @ExceptionHandler(InValidValueException.class)
-    public ResponseEntity<ErrorDto> inValidValueExceptionHandler(InValidValueException exception) {
-        String argName = StringUtils.defaultIfEmpty(MessageUtils.getMessage(exception.getFieldName()), exception.getFieldName());
-        String message = MessageUtils.getMessage(exception.getResCode(), argName);
-
-        message = StringUtils.defaultIfBlank(message, exception.getMessage());
-
-        ErrorDto errorDto = new ErrorDto();
-
-        errorDto.setResMsg(message);
-
-        return getResponseEntity(exception, errorDto);
-    }
-
-    /**
-     * {@link Exception} 을 처리한다.
-     *
-     * @param exception {@link Exception}
-     * @return {@link ResponseEntity}
-     */
-    @ExceptionHandler({Exception.class})
-    public ResponseEntity<ErrorDto> exceptionHandler(Exception exception) {
-        return getResponseEntity(exception, new ErrorDto());
-    }
-
-    /**
-     * {@link Exception} 을 처리한다.
-     *
-     * @param exception {@link Exception}
-     * @param errorDto  {@link ErrorDto}
-     * @return {@link ResponseEntity}
-     */
-    public ResponseEntity<ErrorDto> getResponseEntity(Exception exception, ErrorDto errorDto) {
-        AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
-
-        // 에러 위치
-        if (exception instanceof ConstraintViolationException) {
-            log.error(exception.getMessage());
-            errorDto.setWhereCause(exception.getStackTrace()[1].toString());
-        } else {
-            log.error(exception.getMessage(), exception);
-            errorDto.setWhereCause(exception.getStackTrace()[0].toString());
-        }
-
-        Exceptions exceptions = Exceptions.valueOf(exception);
-
-        errorDto.setHttpStatus(exceptions.getHttpStatus());
-        errorDto.setRequestUri(accessLogDto.getRequestUri());
-        errorDto.setResCode(exceptions.getResCode());
-
-        if (StringUtils.isBlank(errorDto.getResMsg())) {
-            errorDto.setResMsg(exceptions.getResMsg());
-        }
-
-        // AccessLogDto 에 결과를 담는다.
-        accessLogDto.setHttpStatus(errorDto.getHttpStatus());
-        accessLogDto.setResCode(errorDto.getResCode());
-        accessLogDto.setResMsg(errorDto.getResMsg());
-
-        return ResponseEntity.status(errorDto.getHttpStatus()).body(errorDto);
+    protected ExceptionItem getExceptionItem(Exception exception) {
+        return exceptionsMap.get(exception.getClass().getSimpleName());
     }
 }
