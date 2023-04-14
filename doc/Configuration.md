@@ -44,16 +44,27 @@ project:
   access.log:
     enabled: true
     filter: true
+    filter-order: 0
+    url-patterns:
+    path-patterns:
+    exclude-path-patterns:
+      - "/js/*"
+      - "/css/*"
+      - "/images/*"
+      - "/font/*"
     request-header: true
+    request-header-names:
+      - "user-agent"
+      - "content-type"
+    request-uri: true
     request-param: true
     request-body: true
-    response-header: true
-    response-body: true
     request-body-length: 1000
-    response-body-length: 1000
-    request-header-names:
+    response-header: true
     response-header-names:
-    exclude-path-patterns:
+    response-body: true
+    response-body-length: 1000
+    stop-watch: true
 ```
 
 # DataSource 설정에 대해
@@ -65,12 +76,16 @@ project:
         - @Configuration 과 @Bean 을 이용하여 DataSource, SqlSessionFactory, SqlSessionTemplate, DataSourceTransactionManager
           를 직접 생성
     - BeanDefinitionRegistryPostProcessor 를 이용하여 동적으로 Bean 을 등록하는 방법
-        - project-common 에서 사용하는 방법.
+        - 현재 라이브러리에서 사용하는 방법
         - dependency 에 project-cmn-configuration-datasource 를 추가한다.
         - application.yml 에서 다음 AutoConfiguration 은 제외하도록 설정한다.
             - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
             - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
             - org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration
+3. 연결해야 할 DataSource 가 2개 이상이고 같은 Transaction 에 묶여야 한다면 XADataSource 를 이용하고, 라이브러리에 spring-boot-starter-jta-atomikos 를
+   포함되어 있어 자동으로 JtaTransactionManager 가 설정된다.(Atomikos AutoConfiguration)
+4. SpringBoot 3.x(SpringFramework 6.x) 부터 Transaction 패키지가 javax 에서 jakarta 로 변경되었고 Atomikos 는 아직 변경 전이다.
+   따라서 Atomikos 를 사용하려면 SpringBoot 2.x(SpringFramework 5.x)를 사용해야 한다.
 
 ```yaml
 
@@ -82,10 +97,16 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration
 ```
 
-3. 연결해야 할 DataSource 가 2개 이상이고 같은 Transaction 에 묶여야 한다면 XADataSource 를 이용하고, 라이브러리에 spring-boot-starter-jta-atomikos 를
-   포함하면 자동으로 JtaTransactionManager 를 설정해 준다. - Atomikos AutoConfiguration
-4. SpringBoot 3.x(SpringFramework 6.x) 부터 Transaction 패키지가 javax 에서 jakarta 로 변경되었고 Atomikos 는 아직 변경 전이다.
-   따라서 Atomikos 를 사용하려면 SpringBoot 2.x(SpringFramework 5.x)를 사용해야 한다.
+## 주의
+### 반드시 Datasource 관련 AutoConfiguration 을 제외해야 한다.
+### driver-class-name 에 해당하는 JDBC Driver 를 dependency 에 포함해야 한다.
+### MyBatis 를 사용하는 경우에는 MyBatis 설정도 같이 해줘야 한다.
+
+## JASYPT 암호화 지원에 대하여
+1. com.project.cmn.configuration.datasource.DataSourceItem 중 String 타입의 필드에 대해 암호화를 지원한다.
+2. 알고리즘은 PBEWithMD5AndDES 를 사용한다.
+3. 설정 속성은 jasypt.encryptor.password(암호화 용 Secret Key) 만 지원한다.
+4. 참고) [jasypt-spring-boot](https://github.com/ulisesbocchio/jasypt-spring-boot), [jasypt 사이트](https://www.devglan.com/online-tools/jasypt-online-encryption-decryption)
 
 ## 설정 속성
 
@@ -104,9 +125,9 @@ spring:
 | enabled                  | Boolean | 필수   | 해당 설정 사용 여부                                                                                        |
 | datasource-name          | String  | 필수   | DataSource 이름. 필수 해당 이름을 pool name 으로 사용                                                           |
 | driver-class-name        | String  | 필수   | JDBC 드라이버 클래스명                                                                                     |
-| url                      | String  | 필수   | Database 의 JDBC URL                                                                                |
-| user                     | String  | 필수   | Database 의 사용자명                                                                                    |
-| password                 | String  | 필수   | Database 의 비밀번호                                                                                    |
+| url                      | String  | 필수   | Database 의 JDBC URL. JASYPT 암호화 지원. 암호화된 값은 ENC() 로 묶여야 함                                          |
+| user                     | String  | 필수   | Database 의 사용자명. JASYPT 암호화 지원. 암호화된 값은 ENC() 로 묶여야 함                                              |
+| password                 | String  | 필수   | Database 의 비밀번호. JASYPT 암호화 지원. 암호화된 값은 ENC() 로 묶여야 함                                              |
 | connection-test-query    | String  | 옵션   | 연결 테스트 쿼리. 드라이버가 JDBC4를 지원하면 설정하지 않음                                                               |
 | connection-timeout       | Integer | 옵션   | client 가 pool 로부터 connection 을 얻기위해 기다리는 시간 초단위. 기본 30초                                            |
 | idle-timeout             | Integer | 옵션   | connection 에 pool 에서 idle 상태로 존재하는 시간 초단위. 기본 10분. 최소 10초                                          |

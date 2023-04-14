@@ -18,7 +18,9 @@
     <modules>
         <module>project-cmn-utils</module>
         <module>project-cmn-configuration-datasource</module>
-        <module>project-cmn-configuration-mybatis</module><module>project-cmn-http</module><module>project-cmn-mybatis</module>
+        <module>project-cmn-configuration-mybatis</module>
+        <module>project-cmn-http</module>
+        <module>project-cmn-mybatis</module>
     </modules>
 
     <properties>
@@ -32,6 +34,8 @@
         <commons-io.version>2.11.0</commons-io.version>
         <mybatis-spring-boot-starter.version>3.0.1</mybatis-spring-boot-starter.version>
         <log4jdbc-log4j2-jdbc4.1.version>1.16</log4jdbc-log4j2-jdbc4.1.version>
+        <jasypt.version>1.9.3</jasypt.version>
+        <jasypt-spring-boot-starter.version>3.0.5</jasypt-spring-boot-starter.version>
     </properties>
 
     <dependencies>
@@ -54,6 +58,16 @@
             <dependency>
                 <groupId>com.project.cmn</groupId>
                 <artifactId>project-cmn-utils</artifactId>
+                <version>${com.project.cmn.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.project.cmn</groupId>
+                <artifactId>project-cmn-configuration-datasource</artifactId>
+                <version>${com.project.cmn.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.project.cmn</groupId>
+                <artifactId>project-cmn-configuration-mybatis</artifactId>
                 <version>${com.project.cmn.version}</version>
             </dependency>
             <dependency>
@@ -86,6 +100,16 @@
                 <groupId>org.bgee.log4jdbc-log4j2</groupId>
                 <artifactId>log4jdbc-log4j2-jdbc4.1</artifactId>
                 <version>${log4jdbc-log4j2-jdbc4.1.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.ulisesbocchio</groupId>
+                <artifactId>jasypt-spring-boot-starter</artifactId>
+                <version>${jasypt-spring-boot-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jasypt</groupId>
+                <artifactId>jasypt</artifactId>
+                <version>${jasypt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -3,6 +3,9 @@ package com.project.cmn.configuration.datasource;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -27,10 +30,12 @@ import org.springframework.lang.NonNull;
 @ConditionalOnProperty(prefix = "project.datasource", name = "type", havingValue = "ds")
 public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private DataSourceConfig dataSourceConfig;
+    private JasyptEncryptorConfig jasyptEncryptorConfig;
 
     @Override
     public void setEnvironment(@NonNull Environment environment) {
         this.dataSourceConfig = DataSourceConfig.init(environment);
+        this.jasyptEncryptorConfig = JasyptEncryptorConfig.init(environment);
     }
 
     @Override
@@ -52,11 +57,30 @@ public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, 
      * @param registry {@link BeanDefinitionRegistry}
      */
     private void registerDataSource(BeanDefinitionRegistry registry) {
+        // jasypt.encryptor.password 가 있는 경우
+        PooledPBEStringEncryptor encryptor = null;
+
+        if (jasyptEncryptorConfig != null) {
+            SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+
+            BeanUtils.copyProperties(jasyptEncryptorConfig, config);
+
+            config.setPoolSize(jasyptEncryptorConfig.getPoolSize());
+
+            encryptor = new PooledPBEStringEncryptor();
+
+            encryptor.setConfig(config);
+        }
+
         AbstractBeanDefinition beanDefinition;
 
         for (DataSourceItem item : dataSourceConfig.getItemList()) {
             if (!item.isEnabled()) {
                 continue;
+            }
+
+            if (encryptor != null) {
+                JasyptEncryptorUtils.decrypt(encryptor, item);
             }
 
             if (item.isLazyConnection()) {

@@ -11,16 +11,28 @@ spring:
 project:
   access.log:
     enabled: true
+    filter: true
+    filter-order: 0
+    url-patterns:
+    path-patterns:
+    exclude-path-patterns:
+      - "/js/*"
+      - "/css/*"
+      - "/images/*"
+      - "/font/*"
     request-header: true
+    request-header-names:
+      - "user-agent"
+      - "content-type"
+    request-uri: true
     request-param: true
     request-body: true
-    response-header: true
-    response-body: true
     request-body-length: 1000
-    response-body-length: 1000
-    request-header-names:
+    response-header: true
     response-header-names:
-    exclude-path-patterns:
+    response-body: true
+    response-body-length: 1000
+    stop-watch: true
 
   datasource:
     type: "ds"
@@ -79,6 +91,7 @@ project:
       - enabled: true
         primary: true
         datasource-name: "conditioncoupon-ds"
+        sql-session-factory-name: "conditioncoupon-fact"
         sql-session-template-name: "conditioncoupon-templ"
         config-location: "classpath:mybatis/mybatis-config.xml"
         mapper-locations:
@@ -88,6 +101,7 @@ project:
         mapper-base-package: "com.project.cmn.http.persistence.mapper.conditioncoupon"
       - enabled: false
         datasource-name: "lmmdev11-ds"
+        sql-session-factory-name: "lmmdev11-fact"
         sql-session-template-name: "lmmdev11-templ"
         config-location: "classpath:mybatis/mybatis-config.xml"
         mapper-locations:
