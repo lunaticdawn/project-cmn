@@ -76,7 +76,7 @@ public class MakeFilesForMariaDbService {
      * @param isLocalDate Date 타입 존재 여부
      * @param isLocalTime Time 타입 존재 여부
      * @param isLocalDateTime DateTime 타입 존재 여부
-     * @return
+     * @return Dto 파일 내용
      */
     private String getContent(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto, List<MariaDbColumnDto> columnsList, boolean isLocalDate, boolean isLocalTime, boolean isLocalDateTime) {
         String importStr = "import ";
