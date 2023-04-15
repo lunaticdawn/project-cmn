@@ -9,11 +9,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableTransactionManagement
 @ComponentScan(basePackages = "com.project.cmn")
-public class Applicaiton extends SpringBootServletInitializer {
+public class Application extends SpringBootServletInitializer {
     /**
      * @param args Arguments
      */
     public static void main(String[] args) {
-        SpringApplication.run(Applicaiton.class, args);
+        SpringApplication.run(Application.class, args);
     }
 }
