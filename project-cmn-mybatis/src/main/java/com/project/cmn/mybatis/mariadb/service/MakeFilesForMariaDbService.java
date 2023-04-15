@@ -24,6 +24,12 @@ import java.util.List;
 public class MakeFilesForMariaDbService {
     private final ColumnsMapper columnsMapper;
 
+    /**
+     * 테이블의 정보를 조회하여 파일을 생성한다.
+     *
+     * @param projectInfoDto {@link ProjectInfoDto} 파일 생성에 대한 정보
+     * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
+     */
     public void makeFiles(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto) {
         boolean isLocalDate = false;
         boolean isLocalTime = false;
@@ -50,15 +56,28 @@ public class MakeFilesForMariaDbService {
 
         File dtoFile = new File(fileInfoDto.getDtoPath());
 
-        if (dtoFile.getParentFile().mkdirs()) {
-            try (FileOutputStream fos = new FileOutputStream(dtoFile)) {
-                IOUtils.write(this.getContent(projectInfoDto, fileInfoDto, columnsList, isLocalDate, isLocalTime, isLocalDateTime), fos, StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+        if (!dtoFile.exists()) {
+            dtoFile.getParentFile().mkdirs();
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(dtoFile)) {
+            IOUtils.write(this.getContent(projectInfoDto, fileInfoDto, columnsList, isLocalDate, isLocalTime, isLocalDateTime), fos, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
+    /**
+     * Dto 파일 내용
+     *
+     * @param projectInfoDto {@link ProjectInfoDto} 파일 생성에 대한 정보
+     * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
+     * @param columnsList 테이블의 컬럼 리스트
+     * @param isLocalDate Date 타입 존재 여부
+     * @param isLocalTime Time 타입 존재 여부
+     * @param isLocalDateTime DateTime 타입 존재 여부
+     * @return
+     */
     private String getContent(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto, List<MariaDbColumnDto> columnsList, boolean isLocalDate, boolean isLocalTime, boolean isLocalDateTime) {
         String importStr = "import ";
         StringBuilder buff = new StringBuilder();
@@ -112,6 +131,12 @@ public class MakeFilesForMariaDbService {
         return buff.toString();
     }
 
+    /**
+     * 컬럼의 타입에 해당하는 Java 타입으로 변경한다.
+     *
+     * @param mariaDbColumnDto {@link MariaDbColumnDto} 컬럼 정보
+     * @return 컬럼의 타입에 해당하는 Java 타입
+     */
     private JavaDataType getJavaDataType(MariaDbColumnDto mariaDbColumnDto) {
         boolean isUnsigned = mariaDbColumnDto.getColumnType().contains("unsigned");
 
