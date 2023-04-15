@@ -2,6 +2,9 @@ package com.project.cmn.mybatis.util;
 
 import lombok.Getter;
 
+/**
+ * Java 타입에 따른 Import 정보
+ */
 public enum JavaDataType {
     STRING("String", "")
     , INTEGER("Integer", "")

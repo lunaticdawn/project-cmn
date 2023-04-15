@@ -19,6 +19,11 @@ import java.io.File;
 public class MakeFilesService {
     private final MakeFilesForMariaDbService makeFilesForMariaDbService;
 
+    /**
+     * 파일에 대한 기본정보를 생성하고, DBMS 에 따라 내용을 만들고 생성한다.
+     *
+     * @param param {@link ProjectInfoDto} 파일 생성에 대한 정보
+     */
     public void makeFiles(ProjectInfoDto param) {
         Assert.notNull(param.getDbmsName(), "dbms_name is null!");
         Assert.notNull(param.getProjectPath(), "project_path is null!");
@@ -26,6 +31,7 @@ public class MakeFilesService {
         Assert.notNull(param.getTableName(), "table_name is null!");
         Assert.notNull(param.getDtoPackage(), "dto_package is null!");
 
+        // 파일명
         String filename = param.getTableName();
 
         if (StringUtils.isNotBlank(param.getPrefixReplaceByBlank())) {
@@ -42,6 +48,7 @@ public class MakeFilesService {
             separator = "/";
         }
 
+        // Base Package 까지의 경로
         String basePackageDir = param.getProjectPath()
                 + File.separator + "src" + File.separator + "main" + File.separator + "java"
                 + File.separator + RegExUtils.replaceAll(param.getBasePackage(), "\\.", separator);
@@ -54,9 +61,13 @@ public class MakeFilesService {
             fileInfoDto.setDtoFilename(filename);
         }
 
+        // Dto 까지의 경로 및 Package
         fileInfoDto.setDtoPath(basePackageDir + File.separator + RegExUtils.replaceAll(param.getDtoPackage(), "\\.", separator) + File.separator + fileInfoDto.getDtoFilename() + ".java");
         fileInfoDto.setDtoPackage(param.getBasePackage() + "." + param.getDtoPackage());
 
+        log.debug("# fileInfoDto: {}", fileInfoDto);
+
+        // DBMS 에 따라 파일을 만든다.
         if (StringUtils.equalsIgnoreCase(param.getDbmsName(), "mariadb")
                 || StringUtils.equalsIgnoreCase(param.getDbmsName(), "mysql")) {
             makeFilesForMariaDbService.makeFiles(param, fileInfoDto);

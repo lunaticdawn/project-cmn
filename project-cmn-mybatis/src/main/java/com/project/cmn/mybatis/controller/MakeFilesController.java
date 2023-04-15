@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class MakeFilesController {
     private final MakeFilesService makeFilesService;
 
+    /**
+     * 주어진 테이블을 바탕으로 파일을 생성한다.
+     * 
+     * @param param {@link ProjectInfoDto} 파일 생성에 대한 정보
+     */
     @ResponseBody
     @PostMapping("/make/files")
     public void makeFiles(@Validated @RequestBody ProjectInfoDto param) {
