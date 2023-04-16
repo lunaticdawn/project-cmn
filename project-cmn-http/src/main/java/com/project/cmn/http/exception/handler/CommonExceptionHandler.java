@@ -13,9 +13,9 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
@@ -93,13 +93,13 @@ public class CommonExceptionHandler {
     }
 
     /**
-     * {@link org.springframework.validation.annotation.Validated} 를 통해 발생한 {@link MethodArgumentNotValidException} 을 처리한다.
+     * {@link org.springframework.validation.annotation.Validated} 를 통해 발생한 {@link BindException} 을 처리한다.
      *
-     * @param exception {@link MethodArgumentNotValidException}
+     * @param exception {@link BindException}
      * @return {@link ModelAndView}
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ModelAndView methodArgumentNotValidExceptionHhandler(MethodArgumentNotValidException exception) {
+    @ExceptionHandler(BindException.class)
+    protected ModelAndView bindExceptionHandler(BindException exception) {
         BindingResult bindingResult = exception.getBindingResult();
         List<ConstraintViolationDto> constraintViolationList = new ArrayList<>();
 
@@ -175,7 +175,7 @@ public class CommonExceptionHandler {
      */
     protected ModelAndView getResponse(Exception exception, String message) {
         if (exception instanceof ConstraintViolationException
-            || exception instanceof MethodArgumentNotValidException) {
+                || exception instanceof BindException) {
             log.error(exception.getMessage());
         } else {
             log.error(exception.getMessage(), exception);
