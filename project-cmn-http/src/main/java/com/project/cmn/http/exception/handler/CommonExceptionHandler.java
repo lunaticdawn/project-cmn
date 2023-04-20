@@ -4,6 +4,7 @@ import com.project.cmn.http.WebCmnConstants;
 import com.project.cmn.http.accesslog.AccessLog;
 import com.project.cmn.http.accesslog.AccessLogDto;
 import com.project.cmn.http.exception.InvalidValueException;
+import com.project.cmn.http.exception.WebClientException;
 import com.project.cmn.http.exception.config.ExceptionItem;
 import com.project.cmn.http.exception.config.ExceptionsConfig;
 import com.project.cmn.http.util.MessageUtils;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.lang.reflect.Field;
@@ -33,8 +35,8 @@ import java.util.*;
 @ControllerAdvice(basePackages = "com.project")
 public class CommonExceptionHandler {
     private final Map<String, ExceptionItem> exceptionsMap = new HashMap<>();
-    private int status= HttpStatus.INTERNAL_SERVER_ERROR.value();
-    private String code = String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    private int status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    private String resCode = String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value());
     private String viewName;
 
     /**
@@ -64,7 +66,7 @@ public class CommonExceptionHandler {
      * @return {@link ModelAndView}
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    protected ModelAndView constraintViolationExceptionHandler(ConstraintViolationException exception) {
+    protected ModelAndView constraintViolationExceptionHandler(ConstraintViolationException exception, HttpServletResponse response) {
         Set<ConstraintViolation<?>> constraintViolationSet = exception.getConstraintViolations();
 
         ConstraintViolationDto constraintViolationDto;
@@ -89,7 +91,7 @@ public class CommonExceptionHandler {
             constraintViolationList.add(constraintViolationDto);
         }
 
-        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList));
+        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList), response);
     }
 
     /**
@@ -99,7 +101,7 @@ public class CommonExceptionHandler {
      * @return {@link ModelAndView}
      */
     @ExceptionHandler(BindException.class)
-    protected ModelAndView bindExceptionHandler(BindException exception) {
+    protected ModelAndView bindExceptionHandler(BindException exception, HttpServletResponse response) {
         BindingResult bindingResult = exception.getBindingResult();
         List<ConstraintViolationDto> constraintViolationList = new ArrayList<>();
 
@@ -128,42 +130,18 @@ public class CommonExceptionHandler {
 
         }
 
-        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList));
+        return getResponse(exception, this.sortConstraintViolationList(constraintViolationList), response);
     }
 
     /**
-     * {@link InvalidValueException} 을 처리한다.
-     *
-     * @param exception {@link InvalidValueException}
-     * @return {@link ModelAndView}
-     */
-    @ExceptionHandler(InvalidValueException.class)
-    protected ModelAndView inValidValueExceptionHandler(InvalidValueException exception) {
-        String argName = StringUtils.defaultIfEmpty(MessageUtils.getMessage(exception.getFieldName()), exception.getFieldName());
-        String message = null;
-
-        ExceptionItem exceptionItem = this.getExceptionItem(exception);
-
-        if (exceptionItem != null) {
-            message = MessageUtils.getMessage(exceptionItem.getCode(), argName);
-        }
-
-        if (StringUtils.isBlank(message)) {
-            message = exception.getMessage();
-        }
-
-        return getResponse(exception, message);
-    }
-
-    /**
-     * {@link Exception} 을 처리한다.
+     * 기타 Exception 을 처리한다.
      *
      * @param exception {@link Exception}
      * @return {@link ModelAndView}
      */
-    @ExceptionHandler({Exception.class})
-    protected ModelAndView exceptionHandler(Exception exception) {
-        return getResponse(exception, exception.getMessage());
+    @ExceptionHandler({InvalidValueException.class, WebClientException.class, Exception.class})
+    protected ModelAndView exceptionHandler(Exception exception, HttpServletResponse response) {
+        return getResponse(exception, exception.getMessage(), response);
     }
 
     /**
@@ -173,7 +151,7 @@ public class CommonExceptionHandler {
      * @param message 결과 메시지
      * @return Exception 에 대한 Response
      */
-    protected ModelAndView getResponse(Exception exception, String message) {
+    protected ModelAndView getResponse(Exception exception, String message, HttpServletResponse response) {
         if (exception instanceof ConstraintViolationException
                 || exception instanceof BindException) {
             log.error(exception.getMessage());
@@ -181,46 +159,25 @@ public class CommonExceptionHandler {
             log.error(exception.getMessage(), exception);
         }
 
-        // 각 Exception 에 대한 개별 설정 적용
-        ExceptionItem exceptionItem = this.getExceptionItem(exception);
-
-        if (exceptionItem != null) {
-            status = exceptionItem.getStatus();
-            code = exceptionItem.getCode();
-
-            // 코드에 대한 메시지가 설정되어 있다면
-            if (StringUtils.isNotBlank(MessageUtils.getMessage(code))) {
-                message = MessageUtils.getMessage(code);
-            }
-
-            if (StringUtils.isNotBlank(exceptionItem.getViewName())) {
-                viewName = exceptionItem.getViewName();
-            }
-        }
+        message = this.resolveMessage(exception, message);
 
         AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
 
         // DB 에 이력을 넣을 수 있도록 AccessLogDto 에 결과를 담는다.
         accessLogDto.setHttpStatus(status);
-        accessLogDto.setResCode(code);
+        accessLogDto.setResCode(resCode);
         accessLogDto.setResMsg(message);
 
         // 응답을 만든다.
         ModelAndView mav = new ModelAndView();
 
         mav.addObject(WebCmnConstants.ResponseKeys.RES_STATUS.code(), status);
-        mav.addObject(WebCmnConstants.ResponseKeys.RES_CODE.code(), code);
+        mav.addObject(WebCmnConstants.ResponseKeys.RES_CODE.code(), resCode);
         mav.addObject(WebCmnConstants.ResponseKeys.RES_MSG.code(), message);
 
-        if (StringUtils.startsWith(accessLogDto.getRequestHeader().get("content-type"), MediaType.APPLICATION_JSON_VALUE)) {
-            mav.setView(new MappingJackson2JsonView());
-        } else {
-            if (StringUtils.isNotBlank(viewName)) {
-                mav.setViewName(viewName);
-            } else {
-                mav.setView(new MappingJackson2JsonView());
-            }
-        }
+        this.resolveView(mav, viewName);
+
+        response.setStatus(status);
 
         return mav;
     }
@@ -232,10 +189,64 @@ public class CommonExceptionHandler {
      * @param constraintViolationList 제약조건 위반 리스트
      * @return 제약조건 위반에 대한 Response
      */
-    protected ModelAndView getResponse(Exception exception, List<ConstraintViolationDto> constraintViolationList) {
-        ModelAndView mav = this.getResponse(exception, constraintViolationList.get(0).getMessage());
+    protected ModelAndView getResponse(Exception exception, List<ConstraintViolationDto> constraintViolationList, HttpServletResponse response) {
+        ModelAndView mav = this.getResponse(exception, constraintViolationList.get(0).getMessage(), response);
 
         return mav.addObject(WebCmnConstants.ResponseKeys.CONSTRAINT_VIOLATION_LIST.code(), constraintViolationList);
+    }
+
+    /**
+     * 각 Exception 에 대한 개별 설정 적용
+     *
+     * @param exception 처리되어야 하는 Exception 들
+     * @param message Exception 의 기본 메시지
+     * @return 각 Exception 에 대한 개별 설정 적용이 된 후 메시지
+     */
+    private String resolveMessage(Exception exception, String message) {
+        // 각 Exception 에 대한 개별 설정 적용
+        ExceptionItem exceptionItem = this.getExceptionItem(exception);
+
+        if (exceptionItem != null) {
+            status = exceptionItem.getStatus();
+
+            // 응답코드 셋팅
+            if (StringUtils.isNotBlank(exceptionItem.getResCode())) {
+                resCode = exceptionItem.getResCode();
+
+                // 코드에 대한 메시지가 설정되어 있다면, 코드에 대한 메시지를 우선으로 설정한다.
+                if (StringUtils.isNotBlank(MessageUtils.getMessage(resCode))) {
+                    message = MessageUtils.getMessage(resCode);
+                }
+            }
+
+            // 뷰 이름 셋팅
+            if (StringUtils.isNotBlank(exceptionItem.getViewName())) {
+                viewName = exceptionItem.getViewName();
+            }
+        }
+
+        return message;
+    }
+
+    /**
+     * View 를 set 한다.
+     * 요청의 content-type 이 application/json 인 경우, {@link MappingJackson2JsonView} 를 set 하고, 그 외의 경우에는 viewName 을 기준으로 한다.
+     *
+     * @param mav {@link ModelAndView}
+     * @param viewName set 할 view name
+     */
+    private void resolveView(ModelAndView mav, String viewName) {
+        AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
+
+        if (StringUtils.startsWith(accessLogDto.getRequestHeader().get("content-type"), MediaType.APPLICATION_JSON_VALUE)) {
+            mav.setView(new MappingJackson2JsonView());
+        } else {
+            if (StringUtils.isNotBlank(viewName)) {
+                mav.setViewName(viewName);
+            } else {
+                mav.setView(new MappingJackson2JsonView());
+            }
+        }
     }
 
     /**
