@@ -11,7 +11,7 @@ public class InvalidValueException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private final String fieldName;
-    private static final String MSG_CODE = "invalid.value";
+    private static final String DEFAULT_MSG_CODE = "invalid.value";
 
     /**
      * 생성자
@@ -19,7 +19,7 @@ public class InvalidValueException extends RuntimeException {
      * @param fieldName 유효하지 않은 값을 받은 필드명
      */
     public InvalidValueException(String fieldName) {
-        super(MessageUtils.getMessage(InvalidValueException.MSG_CODE, fieldName));
+        super(MessageUtils.getMessage(InvalidValueException.DEFAULT_MSG_CODE, MessageUtils.getMessage(fieldName)));
 
         this.fieldName = fieldName;
     }
