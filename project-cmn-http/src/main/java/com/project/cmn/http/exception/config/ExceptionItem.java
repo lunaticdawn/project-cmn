@@ -23,9 +23,9 @@ public class ExceptionItem {
     private int status;
 
     /**
-     * 결과 코드. 필수
+     * 결과 코드. 옵션
      */
-    private String code;
+    private String resCode;
 
     /**
      * 설명. 옵션

@@ -281,10 +281,10 @@ project:
 
 - com.project.cmn.http.exception.config.ExceptionItem
 
-| 속성         | 타입     | 필수여부 | 기본값 | 설명                                         |
-|------------|--------|------|-----|--------------------------------------------|
-| name       | String | 필수   | -   | 설정할 Exception 의 Simple Name                |
-| status     | int    | 필수   | -   | response 의 http status 값                   |
-| code       | String | 필수   | -   | 응답 코드                                      |
-| desc       | String | 옵션   | -   | 설명                                         |
-| view-name  | String | 옵션   | -   | Exception Handler 에서 처리한 결과를 보여줄 View 의 이름 |
+| 속성        | 타입     | 필수여부 | 기본값 | 설명                                        |
+|-----------|--------|------|-----|-------------------------------------------|
+| name      | String | 필수   | -   | 설정할 Exception 의 Simple Name               |
+| status    | int    | 필수   | -   | response 의 http status 값                  |
+| res-code  | String | 옵션   | -   | 응답 코드. 없는 경우 http status 값                |
+| desc      | String | 옵션   | -   | 설명                                        |
+| view-name | String | 옵션   | -   | Exception Handler 에서 처리한 결과를 보여줄 View 의 이름 |
