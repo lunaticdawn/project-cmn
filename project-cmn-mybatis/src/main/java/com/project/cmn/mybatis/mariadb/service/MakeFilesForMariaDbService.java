@@ -3,7 +3,7 @@ package com.project.cmn.mybatis.mariadb.service;
 import com.project.cmn.mybatis.dto.FileInfoDto;
 import com.project.cmn.mybatis.dto.ProjectInfoDto;
 import com.project.cmn.mybatis.mariadb.dto.MariaDbColumnDto;
-import com.project.cmn.mybatis.mariadb.mapper.ColumnsMapper;
+import com.project.cmn.mybatis.mariadb.mapper.MariaDBColumnsMapper;
 import com.project.cmn.mybatis.util.JavaDataType;
 import com.project.cmn.mybatis.util.MariaDbDataType;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class MakeFilesForMariaDbService {
-    private final ColumnsMapper columnsMapper;
+    private final MariaDBColumnsMapper columnsMapper;
 
     /**
      * 테이블의 정보를 조회하여 파일을 생성한다.

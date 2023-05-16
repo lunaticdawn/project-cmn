@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
 		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.project.cmn.mybatis.mariadb.mapper.ColumnsMapper">
+<mapper namespace="com.project.cmn.mybatis.mariadb.mapper.MariaDBColumnsMapper">
     <select id="selectColumnList" resultType="com.project.cmn.mybatis.mariadb.dto.MariaDbColumnDto">
         /* mariadb.mapper.ColumnsMapper.selectColumnList */
         SELECT

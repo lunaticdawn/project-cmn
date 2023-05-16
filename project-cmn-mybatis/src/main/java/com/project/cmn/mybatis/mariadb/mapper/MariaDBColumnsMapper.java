@@ -8,7 +8,7 @@ import org.springframework.lang.NonNull;
 import java.util.List;
 
 @Mapper
-public interface ColumnsMapper {
+public interface MariaDBColumnsMapper {
     /**
      * 테이블의 열 정보를 조회한다.
      *

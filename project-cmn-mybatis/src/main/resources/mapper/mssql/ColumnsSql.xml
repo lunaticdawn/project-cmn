@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
 		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.project.cmn.mybatis.mssql.mapper.ColumnsMapper">
+<mapper namespace="com.project.cmn.mybatis.mssql.mapper.MSSqlColumnsMapper">
     <select id="selectColumnList" resultType="com.project.cmn.mybatis.mssql.dto.MSSqlColumnDto">
         /* mssql.mapper.ColumnsMapper.selectColumnList */
         SELECT

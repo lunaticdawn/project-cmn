@@ -3,7 +3,7 @@ package com.project.cmn.mybatis.mssql.service;
 import com.project.cmn.mybatis.dto.FileInfoDto;
 import com.project.cmn.mybatis.dto.ProjectInfoDto;
 import com.project.cmn.mybatis.mssql.dto.MSSqlColumnDto;
-import com.project.cmn.mybatis.mssql.mapper.ColumnsMapper;
+import com.project.cmn.mybatis.mssql.mapper.MSSqlColumnsMapper;
 import com.project.cmn.mybatis.util.JavaDataType;
 import com.project.cmn.mybatis.util.MSSqlDataType;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class MakeFilesForMSSqlService {
-    private final ColumnsMapper columnsMapper;
+    private final MSSqlColumnsMapper columnsMapper;
 
     /**
      * 테이블의 정보를 조회하여 파일을 생성한다.
