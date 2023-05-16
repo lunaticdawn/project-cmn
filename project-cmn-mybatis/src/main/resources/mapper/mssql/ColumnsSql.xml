@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.cmn.mybatis.mssql.mapper.ColumnsMapper">
+    <select id="selectColumnList" resultType="com.project.cmn.mybatis.mssql.dto.MSSqlColumnDto">
+        /* mssql.mapper.ColumnsMapper.selectColumnList */
+        SELECT
+            c.TABLE_CATALOG
+            , c.TABLE_SCHEMA
+            , c.TABLE_NAME
+            , c.COLUMN_NAME
+            , c.IS_NULLABLE
+            , c.DATA_TYPE
+            , c.CHARACTER_MAXIMUM_LENGTH
+            , c.CHARACTER_OCTET_LENGTH
+            , c.NUMERIC_PRECISION
+            , c.NUMERIC_SCALE
+            , ep.VALUE AS COLUMN_COMMENT
+            , kcu.CONSTRAINT_NAME
+        FROM
+            information_schema.COLUMNS c
+            LEFT OUTER JOIN sys.EXTENDED_PROPERTIES ep
+                ON OBJECT_ID(c.TABLE_NAME) = ep.MAJOR_ID
+                AND c.ORDINAL_POSITION = ep.MINOR_ID
+            LEFT OUTER JOIN information_schema.KEY_COLUMN_USAGE kcu
+                ON c.TABLE_CATALOG = kcu.TABLE_CATALOG
+                AND c.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+                AND c.TABLE_NAME = kcu.TABLE_NAME
+                AND c.COLUMN_NAME = kcu.COLUMN_NAME
+        WHERE
+            c.TABLE_CATALOG = #{tableCatalog}
+            AND c.TABLE_SCHEMA = #{tableSchema}
+            AND c.TABLE_NAME = #{tableName}
+        ORDER BY
+            c.ORDINAL_POSITION
+    </select>
+</mapper>

@@ -1,11 +1,11 @@
-package com.project.cmn.mybatis.mariadb.service;
+package com.project.cmn.mybatis.mssql.service;
 
 import com.project.cmn.mybatis.dto.FileInfoDto;
 import com.project.cmn.mybatis.dto.ProjectInfoDto;
-import com.project.cmn.mybatis.mariadb.dto.MariaDbColumnDto;
-import com.project.cmn.mybatis.mariadb.mapper.ColumnsMapper;
+import com.project.cmn.mybatis.mssql.dto.MSSqlColumnDto;
+import com.project.cmn.mybatis.mssql.mapper.ColumnsMapper;
 import com.project.cmn.mybatis.util.JavaDataType;
-import com.project.cmn.mybatis.util.MariaDbDataType;
+import com.project.cmn.mybatis.util.MSSqlDataType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class MakeFilesForMariaDbService {
+public class MakeFilesForMSSqlService {
     private final ColumnsMapper columnsMapper;
 
     /**
@@ -35,9 +35,9 @@ public class MakeFilesForMariaDbService {
         boolean isLocalTime = false;
         boolean isLocalDateTime = false;
 
-        List<MariaDbColumnDto> columnsList = columnsMapper.selectColumnList(projectInfoDto.getTableSchema(), projectInfoDto.getTableName());
+        List<MSSqlColumnDto> columnsList = columnsMapper.selectColumnList(projectInfoDto.getTableCatalog(), projectInfoDto.getTableSchema(), projectInfoDto.getTableName());
 
-        for (MariaDbColumnDto columnDto : columnsList) {
+        for (MSSqlColumnDto columnDto : columnsList) {
             // java.time.LocalDate 타입이 있는지 체크
             if (this.getJavaDataType(columnDto) == JavaDataType.LOCAL_DATE && !isLocalDate) {
                 isLocalDate = true;
@@ -78,7 +78,7 @@ public class MakeFilesForMariaDbService {
      * @param isLocalDateTime DateTime 타입 존재 여부
      * @return Dto 파일 내용
      */
-    private String getContent(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto, List<MariaDbColumnDto> columnsList, boolean isLocalDate, boolean isLocalTime, boolean isLocalDateTime) {
+    private String getContent(ProjectInfoDto projectInfoDto, FileInfoDto fileInfoDto, List<MSSqlColumnDto> columnsList, boolean isLocalDate, boolean isLocalTime, boolean isLocalDateTime) {
         String importStr = "import ";
         StringBuilder buff = new StringBuilder();
 
@@ -117,7 +117,7 @@ public class MakeFilesForMariaDbService {
         buff.append("@ToString").append("\n");
         buff.append("public class ").append(fileInfoDto.getDtoFilename()).append(" {").append("\n");
 
-        for (MariaDbColumnDto columnDto : columnsList) {
+        for (MSSqlColumnDto columnDto : columnsList) {
             buff.append("    /**").append("\n");
             buff.append("     * ").append(columnDto.getColumnComment()).append("\n");
             buff.append("     */").append("\n");
@@ -134,18 +134,10 @@ public class MakeFilesForMariaDbService {
     /**
      * 컬럼의 타입에 해당하는 Java 타입으로 변경한다.
      *
-     * @param columnDto {@link MariaDbColumnDto} 컬럼 정보
+     * @param columnDto {@link MSSqlColumnDto} 컬럼 정보
      * @return 컬럼의 타입에 해당하는 Java 타입
      */
-    private JavaDataType getJavaDataType(MariaDbColumnDto columnDto) {
-        boolean isUnsigned = columnDto.getColumnType().contains("unsigned");
-
-        JavaDataType javaDataType = MariaDbDataType.getJavaDataType(columnDto.getDataType());
-
-        if (isUnsigned && javaDataType == JavaDataType.INTEGER) {
-            javaDataType = JavaDataType.LONG;
-        }
-
-        return javaDataType;
+    private JavaDataType getJavaDataType(MSSqlColumnDto columnDto) {
+        return MSSqlDataType.getJavaDataType(columnDto.getDataType());
     }
 }

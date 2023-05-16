@@ -3,6 +3,7 @@ package com.project.cmn.mybatis.service;
 import com.project.cmn.mybatis.dto.FileInfoDto;
 import com.project.cmn.mybatis.dto.ProjectInfoDto;
 import com.project.cmn.mybatis.mariadb.service.MakeFilesForMariaDbService;
+import com.project.cmn.mybatis.mssql.service.MakeFilesForMSSqlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
@@ -18,6 +19,7 @@ import java.io.File;
 @Service
 public class MakeFilesService {
     private final MakeFilesForMariaDbService makeFilesForMariaDbService;
+    private final MakeFilesForMSSqlService makeFilesForMSSqlService;
 
     /**
      * 파일에 대한 기본정보를 생성하고, DBMS 에 따라 내용을 만들고 생성한다.
@@ -71,6 +73,8 @@ public class MakeFilesService {
         if (StringUtils.equalsIgnoreCase(param.getDbmsName(), "mariadb")
                 || StringUtils.equalsIgnoreCase(param.getDbmsName(), "mysql")) {
             makeFilesForMariaDbService.makeFiles(param, fileInfoDto);
+        } else if (StringUtils.equalsIgnoreCase(param.getDbmsName(), "mssql")) {
+            makeFilesForMSSqlService.makeFiles(param, fileInfoDto);
         }
     }
 }
