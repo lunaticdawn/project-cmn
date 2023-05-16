@@ -17,5 +17,5 @@ public interface MSSqlColumnsMapper {
      * @param tableName   열이 포함된 테이블의 이름. Null 을 허용하지 않음
      * @return 테이블의 열 정보
      */
-    List<MSSqlColumnDto> selectColumnList(@Param("tableSchema") String tableCatalog, @Param("tableSchema") String tableSchema, @NonNull @Param("tableName") String tableName);
+    List<MSSqlColumnDto> selectColumnList(@Param("tableCatalog") String tableCatalog, @Param("tableSchema") String tableSchema, @NonNull @Param("tableName") String tableName);
 }
