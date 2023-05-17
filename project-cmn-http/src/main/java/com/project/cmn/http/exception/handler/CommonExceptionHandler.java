@@ -213,7 +213,7 @@ public class CommonExceptionHandler {
             if (StringUtils.isNotBlank(exceptionItem.getResCode())) {
                 resCode = exceptionItem.getResCode();
 
-                // 코드에 대한 메시지가 설정되어 있다면, 코드에 대한 메시지를 우선으로 설정한다.
+                // 응답코드에 대한 메시지가 설정되어 있다면, 응답코드에 대한 메시지를 우선으로 설정한다.
                 if (StringUtils.isNotBlank(MessageUtils.getMessage(resCode))) {
                     message = MessageUtils.getMessage(resCode);
                 }
