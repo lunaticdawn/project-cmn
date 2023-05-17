@@ -69,6 +69,10 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
         AbstractBeanDefinition mapperScannerConfigurer;
 
         for (MyBatisItem item : myBatisConfig.getItemList()) {
+            if (!item.isEnabled()) {
+                continue;
+            }
+
             // SqlSessionFactoryBean 정의
             sqlSessionFactory = BeanDefinitionBuilder.genericBeanDefinition(SqlSessionFactoryBean.class)
                     .addPropertyReference("dataSource", item.getDatasourceName())
