@@ -33,6 +33,12 @@ public class ProjectInfoDto {
     private String basePackage;
 
     /**
+     * 테이블 카탈로그
+     */
+    @JsonProperty("table_catalog")
+    private String tableCatalog;
+
+    /**
      * 테이블 스키마
      */
     @JsonProperty("table_schema")

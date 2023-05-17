@@ -33,7 +33,7 @@ public enum MariaDbDataType {
     , LONGTEXT("LONGTEXT", JavaDataType.STRING)
     , TINYBLOB("TINYBLOB", JavaDataType.STRING)
     , TINYTEXT("TINYTEXT", JavaDataType.STRING)
-    , VARCHR("VARCHAR", JavaDataType.STRING)
+    , VARCHAR("VARCHAR", JavaDataType.STRING)
     , UUID("UUID", JavaDataType.STRING);
 
     @Getter
