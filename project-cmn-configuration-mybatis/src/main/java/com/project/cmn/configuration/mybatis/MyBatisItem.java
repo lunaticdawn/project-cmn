@@ -16,9 +16,9 @@ import java.util.List;
 @ConfigurationProperties(prefix = "project.mybatis.item-list")
 public class MyBatisItem {
     /**
-     * 설정 사용 여부
+     * 설정 사용 여부. default: true
      */
-    private boolean enabled;
+    private boolean enabled = true;
 
     /**
      * &#064;Primary  선언 여부
