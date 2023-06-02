@@ -26,13 +26,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
  * 기본 Exception Handler. 추가로 정의한 Exception 에 대해 처리해야 하는 경우에는 이 클래스를 상속받아 정의한다.
  */
 @Slf4j
-@ControllerAdvice(basePackages = "com.project")
+@ControllerAdvice
 public class CommonExceptionHandler {
     private final Map<String, ExceptionItem> exceptionsMap = new HashMap<>();
     private int status = HttpStatus.INTERNAL_SERVER_ERROR.value();
@@ -45,17 +46,13 @@ public class CommonExceptionHandler {
      * @param exceptionsConfig {@link ExceptionsConfig} Exception 처리에 대한 설정
      */
     public CommonExceptionHandler(ExceptionsConfig exceptionsConfig) {
-        if (exceptionsConfig != null) {
-            this.status = exceptionsConfig.getDefaultStatus() == 0 ? HttpStatus.INTERNAL_SERVER_ERROR.value() : exceptionsConfig.getDefaultStatus();
-            this.viewName = StringUtils.isBlank(exceptionsConfig.getDefaultViewName()) ? null : exceptionsConfig.getDefaultViewName();
+        this.status = exceptionsConfig.getDefaultStatus() == 0 ? HttpStatus.INTERNAL_SERVER_ERROR.value() : exceptionsConfig.getDefaultStatus();
+        this.viewName = StringUtils.isBlank(exceptionsConfig.getDefaultViewName()) ? null : exceptionsConfig.getDefaultViewName();
 
-            if (exceptionsConfig.getItemList() != null && !exceptionsConfig.getItemList().isEmpty()) {
-                for (ExceptionItem item : exceptionsConfig.getItemList()) {
-                    exceptionsMap.put(item.getName(), item);
-                }
+        if (exceptionsConfig.getItemList() != null && !exceptionsConfig.getItemList().isEmpty()) {
+            for (ExceptionItem item : exceptionsConfig.getItemList()) {
+                exceptionsMap.put(item.getName(), item);
             }
-        } else {
-            this.viewName = null;
         }
     }
 
@@ -171,6 +168,7 @@ public class CommonExceptionHandler {
         // 응답을 만든다.
         ModelAndView mav = new ModelAndView();
 
+        mav.addObject(WebCmnConstants.ResponseKeys.TIMESTAMP.code(), LocalDateTime.now());
         mav.addObject(WebCmnConstants.ResponseKeys.RES_STATUS.code(), status);
         mav.addObject(WebCmnConstants.ResponseKeys.RES_CODE.code(), resCode);
         mav.addObject(WebCmnConstants.ResponseKeys.RES_MSG.code(), message);
@@ -238,8 +236,16 @@ public class CommonExceptionHandler {
     private void resolveView(ModelAndView mav, String viewName) {
         AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
 
-        if (StringUtils.startsWith(accessLogDto.getRequestHeader().get("content-type"), MediaType.APPLICATION_JSON_VALUE)) {
-            mav.setView(new MappingJackson2JsonView());
+        if (accessLogDto.getRequestHeader() != null && !accessLogDto.getRequestHeader().isEmpty()) {
+            if (StringUtils.startsWith(accessLogDto.getRequestHeader().get("content-type"), MediaType.APPLICATION_JSON_VALUE)) {
+                mav.setView(new MappingJackson2JsonView());
+            } else {
+                if (StringUtils.isNotBlank(viewName)) {
+                    mav.setViewName(viewName);
+                } else {
+                    mav.setView(new MappingJackson2JsonView());
+                }
+            }
         } else {
             if (StringUtils.isNotBlank(viewName)) {
                 mav.setViewName(viewName);

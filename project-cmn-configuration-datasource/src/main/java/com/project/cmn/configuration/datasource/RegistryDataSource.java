@@ -40,7 +40,7 @@ public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, 
 
     @Override
     public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
-        log.info("# RegistryDataSource");
+        log.info("# Start registering the DataSource as a Bean.");
 
         this.registerDataSource(registry);
         this.registerTransactionManager(registry);
@@ -93,7 +93,8 @@ public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, 
                         .getBeanDefinition();
             }
 
-            log.info("# DataSource({}) Register.", item.getDatasourceName());
+            log.info("# Registered DataSource. - {}", item.getDatasourceName());
+
             registry.registerBeanDefinition(item.getDatasourceName(), beanDefinition);
         }
     }
@@ -119,7 +120,8 @@ public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, 
                 beanDefinition.setPrimary(true);
             }
 
-            log.info("# Transaction({}) Register.", item.getTransactionName());
+            log.info("# Registered Transaction - {}", item.getTransactionName());
+
             registry.registerBeanDefinition(item.getTransactionName(), beanDefinition);
         }
     }

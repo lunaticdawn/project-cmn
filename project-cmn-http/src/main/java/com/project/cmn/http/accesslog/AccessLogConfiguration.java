@@ -1,14 +1,12 @@
-package com.project.cmn.http.configuration;
+package com.project.cmn.http.accesslog;
 
-import com.project.cmn.http.accesslog.AccessLog;
-import com.project.cmn.http.accesslog.AccessLogFilter;
-import com.project.cmn.http.accesslog.AccessLogInterceptor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -17,11 +15,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * # project.access.log.enabled 의 값이 true 이면 설정에 따라 접근 로그를 출력할 수 있는 설정을 적용한다.
  */
 @Slf4j
-@RequiredArgsConstructor
 @Configuration
 @ConditionalOnProperty(prefix = "project.access.log", value = "enabled", havingValue = "true")
-public class AccessLogConfiguration implements WebMvcConfigurer {
-    private final AccessLog accessLog;
+public class AccessLogConfiguration implements WebMvcConfigurer, EnvironmentAware {
+    private AccessLog accessLog;
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        AccessLogConfig accessLogConfig = AccessLogConfig.init(environment);
+
+        accessLog = new AccessLog(accessLogConfig);
+    }
 
     /**
      * 접근 로그를 출력하기 위해 {@link AccessLogInterceptor} 를 추가

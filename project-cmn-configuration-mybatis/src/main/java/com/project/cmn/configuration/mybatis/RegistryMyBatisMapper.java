@@ -41,7 +41,7 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
 
     @Override
     public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
-        log.info("# RegistryMyBatisMapper");
+        log.info("# Start registering the MyBatis.");
 
         try {
             registerSqlSessionTemplate(registry);
@@ -69,7 +69,8 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
         AbstractBeanDefinition mapperScannerConfigurer;
 
         for (MyBatisItem item : myBatisConfig.getItemList()) {
-            if (!item.isEnabled()) {
+            // 사용할 DataSource 가 등록되지 않았다면 패스
+            if (!item.isEnabled() || !registry.containsBeanDefinition(item.getDatasourceName())) {
                 continue;
             }
 
@@ -81,7 +82,8 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
                     .addPropertyValue("typeAliasesPackage", String.join(",", item.getTypeAliasesPackages()))
                     .getBeanDefinition();
 
-            log.info("# SqlSessionFactory({}) Register.", item.getSqlSessionFactoryName());
+            log.info("# Registered SqlSessionFactory - {}", item.getSqlSessionFactoryName());
+
             registry.registerBeanDefinition(item.getSqlSessionFactoryName(), sqlSessionFactory);
 
             // SqlSessionTemplate 정의
@@ -90,7 +92,8 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
                     .setPrimary(item.isPrimary())
                     .getBeanDefinition();
 
-            log.info("# SqlSessionTemplate({}) Register.", item.getSqlSessionTemplateName());
+            log.info("# Registered SqlSessionTemplate - {}", item.getSqlSessionTemplateName());
+
             registry.registerBeanDefinition(item.getSqlSessionTemplateName(), sqlSessionTemplate);
 
             // MapperScannerConfigurer 정의
@@ -100,7 +103,7 @@ public class RegistryMyBatisMapper implements BeanDefinitionRegistryPostProcesso
                     .addPropertyValue("annotationClass", Class.forName(item.getAnnotationClassName()))
                     .getBeanDefinition();
 
-            log.info("# MapperScannerConfigurer({}) Register", item.getSqlSessionTemplateName() + "-mapper");
+            log.info("# Registered MapperScannerConfigurer - {}", item.getSqlSessionTemplateName() + "-mapper");
             registry.registerBeanDefinition(item.getSqlSessionTemplateName() + "-mapper", mapperScannerConfigurer);
         }
     }

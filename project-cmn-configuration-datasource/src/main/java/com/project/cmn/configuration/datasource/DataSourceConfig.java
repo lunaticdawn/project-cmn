@@ -11,7 +11,6 @@ import java.util.List;
 
 /**
  * DataSource 설정
- * #project.datasource
  */
 @Getter
 @Setter
@@ -36,7 +35,6 @@ public class DataSourceConfig {
 
     /**
      * 여러 개의 {@link com.zaxxer.hikari.HikariDataSource} 또는 {@link javax.sql.XADataSource} 생성에 필요한 설정
-     * #project.datasource.item-list
      */
     private List<DataSourceItem> itemList;
 }

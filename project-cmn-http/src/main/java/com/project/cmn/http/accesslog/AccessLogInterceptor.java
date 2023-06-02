@@ -80,7 +80,7 @@ public class AccessLogInterceptor implements HandlerInterceptor {
      * @param accessLogDto {@link AccessLogDto}
      */
     private void logRequestHeader(AccessLogDto accessLogDto) {
-        if (!accessLogConfig.isRequestUri() && !accessLogConfig.isRequestHeader() && !accessLogConfig.isRequestParam()) {
+        if (!accessLogConfig.isRequestInfo()) {
             return;
         }
 
@@ -88,10 +88,7 @@ public class AccessLogInterceptor implements HandlerInterceptor {
 
         buff.append("\n");
         buff.append("-------------------- REQUEST INFO START --------------------").append("\n");
-
-        if (accessLogConfig.isRequestUri()) {
-            buff.append(String.format("-- URL: %s %s", accessLogDto.getRequestMethod(), accessLogDto.getRequestUri())).append("\n");
-        }
+        buff.append(String.format("-- URL: %s %s", accessLogDto.getRequestMethod(), accessLogDto.getRequestUri())).append("\n");
 
         if (accessLogConfig.isRequestHeader()) {
             buff.append(String.format("-- HEADER: %s", accessLogDto.getRequestHeader())).append("\n");
@@ -137,14 +134,14 @@ public class AccessLogInterceptor implements HandlerInterceptor {
     }
 
     private void getResponseLogStr(AccessLogDto accessLogDto) {
-        if (!accessLogConfig.isResponseHeader() && !accessLogConfig.isResponseBody()) {
+        if (!accessLogConfig.isResponseInfo()) {
             return;
         }
 
         StringBuilder buff = new StringBuilder();
 
         buff.append("\n");
-        buff.append("-------------------- RESPONSE START --------------------").append("\n");
+        buff.append("-------------------- RESPONSE INFO START --------------------").append("\n");
 
         if (accessLogConfig.isResponseHeader()) {
             buff.append(String.format("-- URL: %s %s", accessLogDto.getRequestMethod(), accessLogDto.getRequestUri())).append("\n");
@@ -166,7 +163,7 @@ public class AccessLogInterceptor implements HandlerInterceptor {
         }
 
         buff.append("\n");
-        buff.append("-------------------- RESPONSE END   --------------------");
+        buff.append("-------------------- RESPONSE INFO END   --------------------");
 
         log.info(buff.toString());
     }

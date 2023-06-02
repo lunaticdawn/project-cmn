@@ -34,7 +34,7 @@ public class RegistryXADataSource implements BeanDefinitionRegistryPostProcessor
 
     @Override
     public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
-        log.info("# RegistryXADataSource");
+        log.info("# Start registering the XADataSource as a Bean.");
         // Atomikos 라이브러리가 자동으로 JTA를 구성해주기 때문에 Transaction에 대한 설정은 별도로 하지 않는다.
         this.registerXADataSource(registry);
     }
@@ -80,7 +80,8 @@ public class RegistryXADataSource implements BeanDefinitionRegistryPostProcessor
 
             beanDefinition.setPropertyValues(propertyValues);
 
-            log.info("# AtomikosDataSourceBean({}) Register.", item.getDatasourceName());
+            log.info("# Registered AtomikosDataSourceBean - {}", item.getDatasourceName());
+
             registry.registerBeanDefinition(item.getDatasourceName(), beanDefinition);
         }
     }

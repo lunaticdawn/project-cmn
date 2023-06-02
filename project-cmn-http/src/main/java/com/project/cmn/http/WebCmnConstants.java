@@ -17,7 +17,8 @@ public class WebCmnConstants {
     public static final String LOG_KEY = "LOG_KEY";
 
     public enum ResponseKeys {
-        RES_STATUS("res_status")
+        TIMESTAMP("timestamp")
+        , RES_STATUS("res_status")
         , RES_CODE("res_code")
         , RES_MSG("res_msg")
         , STACK_TRACE("stack_trace")

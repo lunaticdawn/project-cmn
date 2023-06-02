@@ -1,9 +1,10 @@
 package com.project.cmn.http.accesslog;
 
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -13,18 +14,25 @@ import org.springframework.context.annotation.Configuration;
  */
 @Aspect
 @Configuration
-@ConditionalOnProperty(prefix = "project.access.log", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "project.access.log", name = "aspect", havingValue = "true")
 public class AccessLogAspect {
+    @Pointcut("execution(* com.project..*Controller.*(..))")
+    public void pointcutController() {}
+
+    @Pointcut("execution(* com.project..*Service.*(..)) || execution(* com.project..*ServiceImpl.*(..))")
+    public void pointcutService() {}
+
+    @Pointcut("execution(* com.project..*Mapper.*(..))")
+    public void pointcutMapper() {}
+
     /**
-     * StopWatch 로깅을 위한 AOP 설정
+     * 메소드 시작 전에 {@link org.springframework.util.StopWatch} 를 실행
      *
-     * @param pjp {@link ProceedingJoinPoint}
-     * @return 메소드의 리턴 값
-     * @throws Throwable {@link Throwable} 메소드 실행 시 발생하는 Exception
+     * @param jp {@link JoinPoint}
      */
-    @Around("execution(* com.project..*Controller.*(..)) || execution(* com.project..*Service.*(..)) || execution(* com.project..*Impl.*(..)) || execution(* com.project..*Mapper.*(..))")
-    public Object arroundLogging(ProceedingJoinPoint pjp) throws Throwable {
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
+    @Before("pointcutController() || pointcutService() || pointcutMapper()")
+    public void beforeMethod(JoinPoint jp) {
+        MethodSignature signature = (MethodSignature) jp.getSignature();
         String executeMethodName = signature.getMethod().getName();
 
         CmnStopWatch stopWatch = AccessLog.getAccessLogDto().getStopWatch();
@@ -36,13 +44,19 @@ public class AccessLogAspect {
 
             stopWatch.start(String.format("%s.%s", signature.getDeclaringType().getSimpleName(), executeMethodName));
         }
+    }
 
-        Object result = pjp.proceed();
+    /**
+     * 메소드 종료 후에 {@link org.springframework.util.StopWatch} 를 중지
+     *
+     * @param jp {@link JoinPoint}
+     */
+    @Before("pointcutController() || pointcutService() || pointcutMapper()")
+    public void afterMethod(JoinPoint jp) {
+        CmnStopWatch stopWatch = AccessLog.getAccessLogDto().getStopWatch();
 
         if (stopWatch != null && stopWatch.isRunning()) {
             stopWatch.stop();
         }
-
-        return result;
     }
 }

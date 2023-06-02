@@ -11,7 +11,6 @@ import java.util.List;
 
 /**
  * MyBatis 설정
- * #project.mybatis
  */
 @Getter
 @Setter
@@ -30,13 +29,11 @@ public class MyBatisConfig {
 
     /**
      * project.mybatis 설정 사용여부
-     * #project.mybatis.enabled
      */
     private boolean enabled;
 
     /**
      * 여러 개의 {@link org.mybatis.spring.SqlSessionTemplate}과 {@link org.mybatis.spring.mapper.MapperScannerConfigurer} 생성에 필요한 설정들
-     * #project.mybatis.item-list
      */
     private List<MyBatisItem> itemList;
 }

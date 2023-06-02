@@ -14,12 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 여러 개의 {@link com.zaxxer.hikari.HikariDataSource} 또는 {@link javax.sql.XADataSource} 생성에 필요한 설정
- * #project.datasource.item-list
  */
 @Getter
 @Setter
 @ToString
-@ConfigurationProperties
+@ConfigurationProperties(prefix = "project.datasource.item-list")
 public class DataSourceItem {
     /**
      * DataSource 사용여부
