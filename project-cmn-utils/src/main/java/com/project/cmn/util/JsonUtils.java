@@ -17,7 +17,7 @@ public class JsonUtils {
     }
 
     /**
-     * Object 를 JSON String로 변환한다.
+     * Object 를 JSON String 으로 변환한다.
      *
      * @param obj 변환할 Object
      * @return String
@@ -60,7 +60,7 @@ public class JsonUtils {
      * @return Object 변환된 Object
      * @throws JsonProcessingException Json 변환 오류
      */
-    public static <T> Object toObject(String json, Class<T> clazz) throws JsonProcessingException {
+    public static <T> T toObject(String json, Class<T> clazz) throws JsonProcessingException {
         return OBJECT_MAPPER.readValue(json, clazz);
     }
 
@@ -79,7 +79,7 @@ public class JsonUtils {
      * @return Object 변환된 Object
      * @throws JsonProcessingException Json 변환 오류
      */
-    public static <T> Object toObject(String json, TypeReference<T> valueTypeRef) throws JsonProcessingException {
+    public static <T> T toObject(String json, TypeReference<T> valueTypeRef) throws JsonProcessingException {
         return OBJECT_MAPPER.readValue(json, valueTypeRef);
     }
 
@@ -104,7 +104,7 @@ public class JsonUtils {
      * @param <T>   {@link T}
      * @return 변환된 {@link Class}
      */
-    public static <T> Object convert(Object obj, Class<T> clazz) {
+    public static <T> T convert(Object obj, Class<T> clazz) {
         return OBJECT_MAPPER.convertValue(obj, clazz);
     }
 }
