@@ -20,17 +20,19 @@
 |-----------------------|----------------------------------|------|-------|-------------------------------------------------------------------|
 | enabled               | Boolean                          | 필수   | false | Access Log 사용 여부                                                  |
 | filter                | Boolean                          | 옵션   | false | AccessLogFilter 사용 여부.<br/>사용으로 해야 Body 부분을 로깅할 수 있다.             |
+| aspect                |Boolean|옵션|false| AccessLogAspect 사용 여부                                             |
 | filter-order          | Integer                          | 옵션   | 0     | AccessLogFilter 의 필터 내 순서                                         |
 | url-patterns          | java.util.List<java.lang.String> | 옵션   | -     | AccessLogFilter 를 적용할 URL 패턴                                      |
 | path-patterns         | java.util.List<java.lang.String> | 옵션   | -     | 로깅할 Path Pattern 들                                                |
 | exclude-path-patterns | java.util.List<java.lang.String> | 옵션   | -     | 로깅하지 않을 Path Pattern 들                                            |
 | request-header        | Boolean                          | 옵션   | true  | Request Header 의 로깅 여부                                            |
 | request-header-names  | java.util.List<java.lang.String> | 옵션   | -     | 로깅할 Request Header 들                                              |
-| request-uri           | Boolean                          | 옵션   | true  | Request Uri 의 로깅 여부                                               |
+| request-info          | Boolean                          | 옵션   | true  | Request 정보의 로깅 여부                                                 |
 | request-param         | Boolean                          | 옵션   | true  | Request Parameter 의 로깅 여부                                         |
 | request-body          | Boolean                          | 옵션   | true  | Request Body 의 로깅 여부.<br/>content-type 이 applicaiton/json 일 때만 로깅 |
 | request-body-length   | Integer                          | 옵션   | 0     | 로깅할 Request Body 의 길이. 0 인 경우 전체                                  |
 | response-header       | Boolean                          | 옵션   | true  | Response Header 의 로깅 여부                                           |
+|response-info|Boolean|옵션|true| Response 정보의 로깅 여부 |
 | response-header-names | java.util.List<java.lang.String> | 옵션   | -     | 로깅할 Response Header 들                                             |
 | response-body         | Boolean                          | 옵션   | true  | Response Body 의 로깅 여부                                             |
 | response-body-length  | Integer                          | 옵션   | true  | 로깅할 Response Body 의 길이. Json 인 경우에만.                              |
@@ -44,6 +46,7 @@ project:
   access.log:
     enabled: true
     filter: true
+    aspect: true
     filter-order: 0
     url-patterns:
     path-patterns:
@@ -52,14 +55,15 @@ project:
       - "/css/*"
       - "/images/*"
       - "/font/*"
+    request-info: true
     request-header: true
     request-header-names:
       - "user-agent"
       - "content-type"
-    request-uri: true
     request-param: true
     request-body: true
     request-body-length: 1000
+    response-info: true
     response-header: true
     response-header-names:
     response-body: true
@@ -122,7 +126,7 @@ spring:
 
 | 속성                       | 타입      | 필수여부 | 설명                                                                                                 |
 |--------------------------|---------|------|----------------------------------------------------------------------------------------------------|
-| enabled                  | Boolean | 필수   | 해당 설정 사용 여부                                                                                        |
+| enabled                  | Boolean | 필수   | 해당 설정 사용 여부. default: true                                                                         |
 | datasource-name          | String  | 필수   | DataSource 이름. 필수 해당 이름을 pool name 으로 사용                                                           |
 | driver-class-name        | String  | 필수   | JDBC 드라이버 클래스명                                                                                     |
 | url                      | String  | 필수   | Database 의 JDBC URL. JASYPT 암호화 지원. 암호화된 값은 ENC() 로 묶여야 함                                          |
@@ -207,6 +211,7 @@ project:
     - dependency 에 project-cmn-configuration-datasource 와 project-cmn-configuration-mybatis 를 추가한다.
     - 사용할 DataSource 를 설정한다.
     - MyBatis 를 설정한다.
+3. 맵핑되는 DataSource 가 등록 전이라면 등록하지 않는다.
 
 ## 설정 속성
 
