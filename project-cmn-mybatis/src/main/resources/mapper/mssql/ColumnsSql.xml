@@ -32,9 +32,13 @@
                 AND c.TABLE_NAME = kcu.TABLE_NAME
                 AND c.COLUMN_NAME = kcu.COLUMN_NAME
         WHERE
-            c.TABLE_CATALOG = #{tableCatalog}
-            AND c.TABLE_SCHEMA = #{tableSchema}
-            AND c.TABLE_NAME = #{tableName}
+            c.TABLE_NAME = #{tableName}
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(tableCatalog)">
+                AND c.TABLE_CATALOG = #{tableCatalog}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(tableSchema)">
+                AND c.TABLE_SCHEMA = #{tableSchema}
+            </if>
         ORDER BY
             c.ORDINAL_POSITION
     </select>
