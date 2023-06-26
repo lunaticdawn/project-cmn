@@ -18,6 +18,9 @@
             , c.NUMERIC_SCALE
             , ep.VALUE AS COLUMN_COMMENT
             , kcu.CONSTRAINT_NAME
+            , CASE
+                WHEN kcu.CONSTRAINT_NAME IS NOT NULL THEN 'PRI'
+            END AS COLUMN_KEY
         FROM
             information_schema.COLUMNS c
             LEFT OUTER JOIN sys.EXTENDED_PROPERTIES ep

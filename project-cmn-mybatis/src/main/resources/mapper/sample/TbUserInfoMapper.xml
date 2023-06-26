@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.cmn.mybatis.sample.mapper.TbUserInfoMapper">
+    <select id="selectTbUserInfo" resultType="com.project.cmn.mybatis.sample.dto.TbUserInfoDto">
+        /* com.project.cmn.mybatis.sample.mapper.TbUserInfoMapper.selectTbUserInfo */
+        SELECT
+            USER_ID
+            , USER_PWD
+            , USER_NM
+            , REG_TIME
+            , REG_ID
+            , MOD_TIME
+            , MOD_ID
+        FROM
+            tb_user_info
+        <where>
+            AND USER_ID = #{userId}
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(userPwd)">
+                AND USER_PWD = #{userPwd}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(userNm)">
+                AND USER_NM = #{userNm}
+            </if>
+            <if test="REG_TIME != null">
+                AND REG_TIME = #{regTime}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(regId)">
+                AND REG_ID = #{regId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertTbUserInfo">
+        /* com.project.cmn.mybatis.sample.mapper.TbUserInfoMapper.insertTbUserInfo */
+        INSERT INTO tb_user_info (
+            USER_ID
+            , USER_PWD
+            , USER_NM
+            , REG_TIME
+            , REG_ID
+            <if test="MOD_TIME != null">
+                , MOD_TIME
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(modId)">
+                , MOD_ID
+            </if>
+        VALUES (
+            #{userId}
+            , #{userPwd}
+            , #{userNm}
+            , CURRENT_TIMESTAMP
+            , #{regId}
+            <if test="modTime != null">
+                , CURRENT_TIMESTAMP
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(modId)">
+                , #{modId}
+            </if>
+        )
+    </insert>
+
+    <update id="updateTbUserInfo">
+        /* com.project.cmn.mybatis.sample.mapper.TbUserInfoMapper.updateTbUserInfo */
+        UPDATE tb_user_info
+        <set>
+            , USER_PWD = #{userPwd}
+            , USER_NM = #{userNm}
+            , REG_TIME = CURRENT_TIMESTAMP
+            , REG_ID = #{regId}
+            , MOD_TIME = CURRENT_TIMESTAMP
+            , MOD_ID = #{modId}
+        </set>
+        WHERE
+            USER_ID = #{userId}
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(userPwd)">
+                AND USER_PWD = #{userPwd}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(userNm)">
+                AND USER_NM = #{userNm}
+            </if>
+            <if test="REG_TIME != null">
+                AND REG_TIME = #{regTime}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(regId)">
+                AND REG_ID = #{regId}
+            </if>
+    </update>
+</mapper>

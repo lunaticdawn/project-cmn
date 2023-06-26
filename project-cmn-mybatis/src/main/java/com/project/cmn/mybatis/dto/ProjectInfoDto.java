@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 @Getter
 @Setter
@@ -19,11 +19,11 @@ public class ProjectInfoDto {
     private String dbmsName;
 
     /**
-     * 프로젝트의 전체 경로
+     * 프로젝트의 절대 경로
      */
     @NotBlank
-    @JsonProperty("project_path")
-    private String projectPath;
+    @JsonProperty("project_absolute_path")
+    private String projectAbsolutePath;
 
     /**
      * 기본 패키지
@@ -31,6 +31,13 @@ public class ProjectInfoDto {
     @NotBlank
     @JsonProperty("base_package")
     private String basePackage;
+
+    /**
+     * 작업/업무 패키지
+     */
+    @NotBlank
+    @JsonProperty("work_package")
+    private String workPackage;
 
     /**
      * 테이블 카탈로그
@@ -58,15 +65,14 @@ public class ProjectInfoDto {
     private String prefixReplaceByBlank;
 
     /**
-     * Dto의 패키지. 기본 패키지 이후의 패키지
-     */
-    @NotBlank
-    @JsonProperty("dto_package")
-    private String dtoPackage;
-
-    /**
-     * Dto의 접미어 ex) Dto
+     * Dto 파일의 접미어 ex) Dto
      */
     @JsonProperty("dto_postfix")
     private String dtoPostfix;
+
+    /**
+     * Mapper 파일의 접미어 ex) Mapper
+     */
+    @JsonProperty("mapper_postfix")
+    private String mapperPostfix;
 }

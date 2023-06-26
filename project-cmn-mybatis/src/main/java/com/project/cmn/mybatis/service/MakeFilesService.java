@@ -28,19 +28,23 @@ public class MakeFilesService {
      */
     public void makeFiles(ProjectInfoDto param) {
         Assert.notNull(param.getDbmsName(), "dbms_name is null!");
-        Assert.notNull(param.getProjectPath(), "project_path is null!");
+        Assert.notNull(param.getProjectAbsolutePath(), "project_absolute_path is null!");
         Assert.notNull(param.getBasePackage(), "base_package is null!");
+        Assert.notNull(param.getWorkPackage(), "work_package is null!");
         Assert.notNull(param.getTableName(), "table_name is null!");
-        Assert.notNull(param.getDtoPackage(), "dto_package is null!");
 
-        // 파일명
-        String filename = param.getTableName();
+        FileInfoDto fileInfoDto = new FileInfoDto();
+
+        // 기본 파일명
+        String basicFilename = param.getTableName();
 
         if (StringUtils.isNotBlank(param.getPrefixReplaceByBlank())) {
-            filename = RegExUtils.replaceFirst(param.getTableName(), param.getPrefixReplaceByBlank(), "");
+            basicFilename = RegExUtils.replaceFirst(param.getTableName(), param.getPrefixReplaceByBlank(), "");
         }
 
-        filename = CaseUtils.toCamelCase(filename, true, '_');
+        basicFilename = CaseUtils.toCamelCase(basicFilename, true, '_');
+
+        fileInfoDto.setBasicFilename(basicFilename);
 
         String separator;
 
@@ -50,22 +54,37 @@ public class MakeFilesService {
             separator = "/";
         }
 
-        // Base Package 까지의 경로
-        String basePackageDir = param.getProjectPath()
+        // Dto 디렉토리의 절대경로
+        String dtoAbsolutePath = param.getProjectAbsolutePath()
                 + File.separator + "src" + File.separator + "main" + File.separator + "java"
-                + File.separator + RegExUtils.replaceAll(param.getBasePackage(), "\\.", separator);
+                + File.separator + RegExUtils.replaceAll(param.getBasePackage(), "\\.", separator)
+                + File.separator + RegExUtils.replaceAll(param.getWorkPackage(), "\\.", separator)
+                + File.separator + "dto";
 
-        FileInfoDto fileInfoDto = new FileInfoDto();
-
+        // Dto 파일명
         if (StringUtils.isNotBlank(param.getDtoPostfix())) {
-            fileInfoDto.setDtoFilename(filename + param.getDtoPostfix());
+            fileInfoDto.setDtoFilename(basicFilename + param.getDtoPostfix());
         } else {
-            fileInfoDto.setDtoFilename(filename);
+            fileInfoDto.setDtoFilename(basicFilename);
         }
 
-        // Dto 까지의 경로 및 Package
-        fileInfoDto.setDtoPath(basePackageDir + File.separator + RegExUtils.replaceAll(param.getDtoPackage(), "\\.", separator) + File.separator + fileInfoDto.getDtoFilename() + ".java");
-        fileInfoDto.setDtoPackage(param.getBasePackage() + "." + param.getDtoPackage());
+        fileInfoDto.setDtoAbsolutePath(dtoAbsolutePath + File.separator + fileInfoDto.getDtoFilename() + ".java");
+        fileInfoDto.setDtoPackage(param.getBasePackage() + "." + param.getWorkPackage() + ".dto");
+
+        // Mapper 디렉토리의 절대경로
+        String mapperAbsolutePath = param.getProjectAbsolutePath()
+                + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "mapper"
+                + File.separator + RegExUtils.replaceAll(param.getWorkPackage(), "\\.", separator);
+
+        // Mapper 파일명
+        if (StringUtils.isNotBlank(param.getMapperPostfix())) {
+            fileInfoDto.setMapperFilename(basicFilename + param.getMapperPostfix());
+        } else {
+            fileInfoDto.setMapperFilename(basicFilename);
+        }
+
+        fileInfoDto.setMapperAbsolutePath(mapperAbsolutePath + File.separator + fileInfoDto.getMapperFilename() + ".xml");
+        fileInfoDto.setMapperNamespace(param.getBasePackage() + "." + param.getWorkPackage() + ".mapper." + fileInfoDto.getMapperFilename());
 
         log.debug("# fileInfoDto: {}", fileInfoDto);
 
