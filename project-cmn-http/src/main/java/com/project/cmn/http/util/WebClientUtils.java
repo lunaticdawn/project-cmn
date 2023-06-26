@@ -7,7 +7,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -51,7 +51,7 @@ public class WebClientUtils {
                 .uri(url)
                 .headers(httpHeadersConsumer)
                 .retrieve()
-                .onStatus(HttpStatus::isError, clientResponse -> Mono.error(new WebClientException(clientResponse.statusCode())))
+                .onStatus(HttpStatusCode::isError, clientResponse -> Mono.error(new WebClientException(clientResponse.statusCode())))
                 .bodyToMono(clazz).block();
     }
 
@@ -65,7 +65,7 @@ public class WebClientUtils {
                 .headers(httpHeadersConsumer)
                 .bodyValue(JsonUtils.toJsonStr(param))
                 .retrieve()
-                .onStatus(HttpStatus::isError, clientResponse -> Mono.error(new WebClientException(clientResponse.statusCode())))
+                .onStatus(HttpStatusCode::isError, clientResponse -> Mono.error(new WebClientException(clientResponse.statusCode())))
                 .bodyToMono(clazz).block();
     }
 }

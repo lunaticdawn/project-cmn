@@ -3,23 +3,23 @@ package com.project.cmn.http.exception;
 import com.project.cmn.http.util.MessageUtils;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 @Getter
 public class WebClientException extends RuntimeException {
     /**
-     * {@link HttpStatus}
+     * {@link HttpStatusCode}
      */
-    private final HttpStatus httpStatus;
+    private final HttpStatusCode httpStatusCode;
 
     /**
      * 생성자
      *
-     * @param httpStatus {@link HttpStatus}
+     * @param httpStatusCode {@link HttpStatusCode}
      */
-    public WebClientException(HttpStatus httpStatus) {
-        super(StringUtils.defaultIfBlank(MessageUtils.getMessage(httpStatus.value()), httpStatus.toString()));
+    public WebClientException(HttpStatusCode httpStatusCode) {
+        super(StringUtils.defaultIfBlank(MessageUtils.getMessage(httpStatusCode.value()), httpStatusCode.toString()));
 
-        this.httpStatus = httpStatus;
+        this.httpStatusCode = httpStatusCode;
     }
 }

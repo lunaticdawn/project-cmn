@@ -1,6 +1,6 @@
 package com.project.cmn.http.validate.annotation;
 
-import javax.validation.*;
+import jakarta.validation.*;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

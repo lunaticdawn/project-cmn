@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.12</version>
+        <version>3.1.0</version>
     </parent>
 
     <groupId>com.project.cmn</groupId>
     <artifactId>project-cmn-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>공통 프로젝트 부모</name>
@@ -28,14 +28,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <com.project.cmn.version>0.1-SNAPSHOT</com.project.cmn.version>
+        <com.project.cmn.version>0.2-SNAPSHOT</com.project.cmn.version>
 
         <commons-text.version>1.10.0</commons-text.version>
-        <commons-io.version>2.12.0</commons-io.version>
-        <mybatis-spring-boot-starter.version>3.0.1</mybatis-spring-boot-starter.version>
+        <commons-io.version>2.13.0</commons-io.version>
+        <mybatis-spring-boot-starter.version>3.0.2</mybatis-spring-boot-starter.version>
         <log4jdbc-log4j2-jdbc4.1.version>1.16</log4jdbc-log4j2-jdbc4.1.version>
         <jasypt.version>1.9.3</jasypt.version>
         <jasypt-spring-boot-starter.version>3.0.5</jasypt-spring-boot-starter.version>
+        <atomikos-jta.version>6.0.0</atomikos-jta.version>
     </properties>
 
     <dependencies>
@@ -115,6 +116,16 @@
                 <groupId>org.jasypt</groupId>
                 <artifactId>jasypt</artifactId>
                 <version>${jasypt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atomikos</groupId>
+                <artifactId>transactions-jdbc</artifactId>
+                <version>${atomikos-jta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atomikos</groupId>
+                <artifactId>transactions-jta</artifactId>
+                <version>${atomikos-jta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
