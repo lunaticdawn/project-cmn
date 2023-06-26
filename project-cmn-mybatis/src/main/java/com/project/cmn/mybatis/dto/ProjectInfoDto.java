@@ -71,6 +71,13 @@ public class ProjectInfoDto {
     private String dtoPostfix;
 
     /**
+     * Mapper 파일을 저장할 경로.
+     * 프로젝트의 절대 경로/src/main/resources 이후의 경로
+     */
+    @JsonProperty("mapper_path")
+    private String mapperPath;
+
+    /**
      * Mapper 파일의 접미어 ex) Mapper
      */
     @JsonProperty("mapper_postfix")

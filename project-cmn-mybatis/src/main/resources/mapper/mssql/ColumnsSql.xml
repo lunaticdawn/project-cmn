@@ -23,10 +23,13 @@
             END AS COLUMN_KEY
         FROM
             information_schema.COLUMNS c
-            LEFT OUTER JOIN sys.EXTENDED_PROPERTIES ep
-                ON OBJECT_ID(c.TABLE_NAME) = ep.MAJOR_ID
-                AND c.ORDINAL_POSITION = ep.MINOR_ID
-            LEFT OUTER JOIN information_schema.KEY_COLUMN_USAGE kcu
+            JOIN sys.COLUMNS c2
+                ON OBJECT_ID(c.TABLE_NAME) = c2.OBJECT_ID
+                AND c.COLUMN_NAME = c2.NAME
+            LEFT JOIN sys.EXTENDED_PROPERTIES ep
+                ON c2.OBJECT_ID = ep.MAJOR_ID
+                AND c2.COLUMN_ID = ep.MINOR_ID
+            LEFT JOIN information_schema.KEY_COLUMN_USAGE kcu
                 ON c.TABLE_CATALOG = kcu.TABLE_CATALOG
                 AND c.TABLE_SCHEMA = kcu.TABLE_SCHEMA
                 AND c.TABLE_NAME = kcu.TABLE_NAME

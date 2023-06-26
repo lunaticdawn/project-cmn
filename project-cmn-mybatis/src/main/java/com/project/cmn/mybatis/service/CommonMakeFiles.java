@@ -120,13 +120,8 @@ public class CommonMakeFiles {
         for (CommonColumnDto commonColumnDto : columnsList) {
             if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
                 builder.append("            AND ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-            } else if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
-                if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
-                    builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
-                } else {
-                    builder.append("            <if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
-                }
-
+            } else if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO") && commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
+                builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
                 builder.append("                AND ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
                 builder.append("            </if>\n");
             }
@@ -160,8 +155,6 @@ public class CommonMakeFiles {
             } else {
                 if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
                     builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank(" + commonColumnDto.getFieldName() + ")\">\n");
-                } else {
-                    builder.append("            <if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
                 }
 
                 builder.append("                , ").append(commonColumnDto.getColumnName()).append("\n");
@@ -169,7 +162,7 @@ public class CommonMakeFiles {
             }
         }
 
-        builder.append("        VALUES (\n");
+        builder.append("        ) VALUES (\n");
 
         isFirstRow = true;
 
@@ -193,18 +186,13 @@ public class CommonMakeFiles {
                     builder.append("#{").append(commonColumnDto.getFieldName()).append("}\n");
                 }
             } else {
-                if (commonColumnDto.getJavaDataType()== JavaDataType.STRING) {
+                if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
                     builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank(" + commonColumnDto.getFieldName() + ")\">\n");
                 } else {
                     builder.append("            <if test=\"").append(commonColumnDto.getFieldName()).append(" != null").append("\">\n");
                 }
 
-                if (StringUtils.endsWith(commonColumnDto.getColumnName(), "_TIME")) {
-                    builder.append("                , CURRENT_TIMESTAMP\n");
-                } else {
-                    builder.append("                , #{").append(commonColumnDto.getFieldName()).append("}\n");
-                }
-
+                builder.append("                , #{").append(commonColumnDto.getFieldName()).append("}\n");
                 builder.append("            </if>\n");
             }
         }
@@ -223,10 +211,24 @@ public class CommonMakeFiles {
                 continue;
             }
 
-            if (StringUtils.endsWith(commonColumnDto.getColumnName(), "_TIME")) {
-                builder.append("            , ").append(commonColumnDto.getColumnName()).append(" = CURRENT_TIMESTAMP\n");
+            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
+                if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
+                    builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
+                } else {
+                    builder.append("            <if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
+                }
+
+                if (StringUtils.endsWith(commonColumnDto.getColumnName(), "_TIME")) {
+                    builder.append("                , ").append(commonColumnDto.getColumnName()).append(" = CURRENT_TIMESTAMP\n");
+                } else {
+                    builder.append("                , ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
+                }
             } else {
-                builder.append("            , ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
+                if (StringUtils.endsWith(commonColumnDto.getColumnName(), "_TIME")) {
+                    builder.append("            , ").append(commonColumnDto.getColumnName()).append(" = CURRENT_TIMESTAMP\n");
+                } else {
+                    builder.append("            , ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
+                }
             }
         }
 
@@ -236,13 +238,8 @@ public class CommonMakeFiles {
         for (CommonColumnDto commonColumnDto : columnsList) {
             if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
                 builder.append("            ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-            } else if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
-                if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
-                    builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
-                } else {
-                    builder.append("            <if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
-                }
-
+            } else if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO") && commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
+                builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
                 builder.append("                AND ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
                 builder.append("            </if>\n");
             }

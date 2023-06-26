@@ -21,7 +21,7 @@
             , c.EXTRA
         FROM
             information_schema.TABLES t
-            INNER JOIN information_schema.COLUMNS c
+            JOIN information_schema.COLUMNS c
                 ON t.TABLE_NAME = c.TABLE_NAME
         WHERE
             t.TABLE_NAME = #{tableName}

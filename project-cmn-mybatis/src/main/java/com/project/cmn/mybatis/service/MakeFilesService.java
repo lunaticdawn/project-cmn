@@ -73,7 +73,8 @@ public class MakeFilesService {
 
         // Mapper 디렉토리의 절대경로
         String mapperAbsolutePath = param.getProjectAbsolutePath()
-                + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "mapper"
+                + File.separator + "src" + File.separator + "main" + File.separator + "resources"
+                + File.separator + param.getMapperPath()
                 + File.separator + RegExUtils.replaceAll(param.getWorkPackage(), "\\.", separator);
 
         // Mapper 파일명
