@@ -9,7 +9,18 @@ import org.apache.commons.text.CaseUtils;
 import java.util.List;
 
 public class CommonMakeFiles {
-    private static final String TIME_POSTFIX = "_TIME";
+    private static final String BLANK_4 = "    ";
+
+    private enum FieldPosition {
+        SELECT_FIELD
+        , INSERT_FIELD
+        , INSERT_VALUE
+        , UPDATE_SET
+        , WHERE;
+
+        FieldPosition() {
+        }
+    }
 
     /**
      * Dto 파일 내용
@@ -18,7 +29,7 @@ public class CommonMakeFiles {
      * @param columnsList 테이블의 컬럼 리스트
      * @return Dto 파일 내용
      */
-    protected String getContent(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList) {
+    protected String getDtoContent(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList) {
         boolean isLocalDate = false;
         boolean isLocalTime = false;
         boolean isLocalDateTime = false;
@@ -100,14 +111,16 @@ public class CommonMakeFiles {
         builder.append("<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\n");
         builder.append("<mapper namespace=\"").append(fileInfoDto.getMapperNamespace()).append("\">\n");
 
+        String tableName = columnsList.get(0).getTableName().toUpperCase();
+
         // Select 문
-        builder.append(this.getSelectStatement(fileInfoDto, columnsList)).append("\n");
+        builder.append(this.getSelectStatement(fileInfoDto, columnsList, tableName)).append("\n");
 
         // Insert 문
-        builder.append(this.getInsertStatement(fileInfoDto, columnsList)).append("\n");
+        builder.append(this.getInsertStatement(fileInfoDto, columnsList, tableName)).append("\n");
 
         // Update 문
-        builder.append(this.getUpdateStatement(fileInfoDto, columnsList));
+        builder.append(this.getUpdateStatement(fileInfoDto, columnsList, tableName));
 
         builder.append("</mapper>");
 
@@ -119,36 +132,30 @@ public class CommonMakeFiles {
      *
      * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
      * @param columnsList 테이블의 컬럼 리스트
+     * @param tableName 테이블 이름
      * @return Select 문의 내용
      */
-    private String getSelectStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList) {
-        boolean isFirstRow = true;
-        String tableName = columnsList.get(0).getTableName();
+    private String getSelectStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList, String tableName) {
+        boolean isFirst = true;
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append("    <select id=\"select").append(fileInfoDto.getBasicFilename()).append("\" resultType=\"").append(fileInfoDto.getDtoPackage() + "." + fileInfoDto.getDtoFilename()).append("\">\n");
-        builder.append(this.getFullQueryId(fileInfoDto.getMapperNamespace(), "select", fileInfoDto.getBasicFilename()));
-        builder.append("        SELECT\n");
+        builder.append(BLANK_4).append(BLANK_4).append("SELECT\n");
 
         for (CommonColumnDto commonColumnDto : columnsList) {
-            if (isFirstRow) {
-                builder.append("            ");
+            builder.append(this.getFieldClause(FieldPosition.SELECT_FIELD, isFirst, commonColumnDto));
 
-                isFirstRow = false;
-            } else {
-                builder.append("            , ");
+            if (isFirst) {
+                isFirst = false;
             }
-
-            builder.append(commonColumnDto.getColumnName()).append("\n");
         }
 
-        builder.append("        FROM\n");
-        builder.append("            ").append(tableName).append("\n");
+        builder.append(BLANK_4).append(BLANK_4).append("FROM\n");
+        builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append(tableName).append("\n");
+        builder.append(BLANK_4).append(BLANK_4).append("WHERE\n");
         builder.append(this.getWhereClause(columnsList));
-        builder.append("    </select>\n");
 
-        return builder.toString();
+        return this.wrapQuery("select", fileInfoDto, builder.toString());
     }
 
     /**
@@ -156,17 +163,15 @@ public class CommonMakeFiles {
      *
      * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
      * @param columnsList 테이블의 컬럼 리스트
+     * @param tableName 테이블 이름
      * @return Insert 문의 내용
      */
-    private String getInsertStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList) {
-        boolean isFirstRow = true;
-        String tableName = columnsList.get(0).getTableName();
+    private String getInsertStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList, String tableName) {
+        boolean isFirst = true;
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append("    <insert id=\"insert").append(fileInfoDto.getBasicFilename()).append("\">\n");
-        builder.append(this.getFullQueryId(fileInfoDto.getMapperNamespace(), "insert", fileInfoDto.getBasicFilename()));
-        builder.append("        INSERT INTO ").append(tableName).append(" (\n");
+        builder.append(BLANK_4).append(BLANK_4).append("INSERT INTO ").append(tableName).append(" (\n");
 
         for (CommonColumnDto commonColumnDto : columnsList) {
             // auto_increment 인 컬럼은 skip
@@ -174,25 +179,16 @@ public class CommonMakeFiles {
                 continue;
             }
 
-            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
-                if (isFirstRow) {
-                    builder.append("            ");
-                    isFirstRow = false;
-                } else {
-                    builder.append("            , ");
-                }
+            builder.append(this.getFieldClause(FieldPosition.INSERT_FIELD, isFirst, commonColumnDto));
 
-                builder.append(commonColumnDto.getColumnName()).append("\n");
-            } else {
-                builder.append("            ").append(this.getConditionClause(commonColumnDto));
-                builder.append("                , ").append(commonColumnDto.getColumnName()).append("\n");
-                builder.append("            </if>\n");
+            if (isFirst) {
+                isFirst = false;
             }
         }
 
-        builder.append("        ) VALUES (\n");
+        builder.append(BLANK_4).append(BLANK_4).append(") VALUES (\n");
 
-        isFirstRow = true;
+        isFirst = true;
 
         for (CommonColumnDto commonColumnDto : columnsList) {
             // auto_increment 인 컬럼은 skip
@@ -200,30 +196,16 @@ public class CommonMakeFiles {
                 continue;
             }
 
-            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
-                if (isFirstRow) {
-                    builder.append("            ");
-                    isFirstRow = false;
-                } else {
-                    builder.append("            , ");
-                }
+            builder.append(this.getFieldClause(FieldPosition.INSERT_VALUE, isFirst, commonColumnDto));
 
-                if (StringUtils.endsWith(commonColumnDto.getColumnName(), TIME_POSTFIX)) {
-                    builder.append("CURRENT_TIMESTAMP\n");
-                } else {
-                    builder.append("#{").append(commonColumnDto.getFieldName()).append("}\n");
-                }
-            } else {
-                builder.append("            ").append(this.getConditionClause(commonColumnDto));
-                builder.append("                , #{").append(commonColumnDto.getFieldName()).append("}\n");
-                builder.append("            </if>\n");
+            if (isFirst) {
+                isFirst = false;
             }
         }
 
-        builder.append("        )\n");
-        builder.append("    </insert>\n");
+        builder.append(BLANK_4).append(BLANK_4).append(")\n");
 
-        return builder.toString();
+        return this.wrapQuery("insert", fileInfoDto, builder.toString());
     }
 
     /**
@@ -231,62 +213,60 @@ public class CommonMakeFiles {
      *
      * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
      * @param columnsList 테이블의 컬럼 리스트
+     * @param tableName 테이블 이름
      * @return Update 문의 내용
      */
-    private String getUpdateStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList) {
-        String tableName = columnsList.get(0).getTableName();
+    private String getUpdateStatement(FileInfoDto fileInfoDto, List<CommonColumnDto> columnsList, String tableName) {
+        boolean isFirst = true;
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append("    <update id=\"update").append(fileInfoDto.getBasicFilename()).append("\">\n");
-        builder.append(this.getFullQueryId(fileInfoDto.getMapperNamespace(), "update", fileInfoDto.getBasicFilename()));
-        builder.append("        UPDATE ").append(tableName).append("\n");
-        builder.append("        <set>\n");
+        builder.append(BLANK_4).append(BLANK_4).append("UPDATE ").append(tableName).append("\n");
+        builder.append(BLANK_4).append(BLANK_4).append("<set>\n");
 
         for (CommonColumnDto commonColumnDto : columnsList) {
             if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
                 continue;
             }
 
-            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")) {
-                builder.append("            ").append(this.getConditionClause(commonColumnDto));
-                builder.append("                , ");
+            builder.append(this.getFieldClause(FieldPosition.UPDATE_SET, isFirst, commonColumnDto));
 
-                if (StringUtils.endsWith(commonColumnDto.getColumnName(), TIME_POSTFIX)) {
-                    builder.append(commonColumnDto.getColumnName()).append(" = CURRENT_TIMESTAMP\n");
-                } else {
-                    builder.append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-                }
-
-                builder.append("            </if>\n");
-            } else {
-                builder.append("            , ");
-
-                if (StringUtils.endsWith(commonColumnDto.getColumnName(), TIME_POSTFIX)) {
-                    builder.append(commonColumnDto.getColumnName()).append(" = CURRENT_TIMESTAMP\n");
-                } else {
-                    builder.append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-                }
+            if (isFirst) {
+                isFirst = false;
             }
         }
 
-        builder.append("        </set>\n");
+        builder.append(BLANK_4).append(BLANK_4).append("</set>\n");
+        builder.append(BLANK_4).append(BLANK_4).append("WHERE\n");
         builder.append(this.getWhereClause(columnsList));
-        builder.append("    </update>\n");
 
-        return builder.toString();
+        return this.wrapQuery("update", fileInfoDto, builder.toString());
     }
 
     /**
-     * 전체 쿼리 아이디를 만들어 반환한다.
+     * 쿼리를 MyBatis 의 태그로 감싼 후 반환한다.
      *
-     * @param namespace Mapper 의 네임스페이스
      * @param type select, insert, update
-     * @param basicFilename 기본 파일명. Table 명의 Camel Case
-     * @return 전체 쿼리 아이디
+     * @param fileInfoDto {@link FileInfoDto} 생성할 파일 정보
+     * @param query 쿼리
+     * @return MyBatis 의 태그로 감싼 쿼리
      */
-    private String getFullQueryId(String namespace, String type, String basicFilename) {
-        return "        /* " + namespace + "." + type + basicFilename + " */\n";
+    private String wrapQuery(String type, FileInfoDto fileInfoDto, String query) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(BLANK_4).append("<").append(type).append(" id=\"").append(type).append(fileInfoDto.getBasicFilename()).append("\"");
+
+        if (StringUtils.equals(type, "select")) {
+            builder.append(" resultType=\"").append(fileInfoDto.getDtoPackage()).append(".").append(fileInfoDto.getDtoFilename()).append("\"");
+        }
+
+        builder.append(">\n");
+
+        builder.append(BLANK_4).append(BLANK_4).append("/* ").append(fileInfoDto.getMapperNamespace()).append(".").append(type).append(fileInfoDto.getBasicFilename()).append(" */\n");
+        builder.append(query);
+        builder.append(BLANK_4).append("</").append(type).append(">\n");
+
+        return builder.toString();
     }
 
     /**
@@ -296,17 +276,19 @@ public class CommonMakeFiles {
      * @return Where 절
      */
     private String getWhereClause(List<CommonColumnDto> columnsList) {
+        boolean isFisrt = true;
         StringBuilder builder = new StringBuilder();
 
-        builder.append("        WHERE\n");
-
         for (CommonColumnDto commonColumnDto : columnsList) {
-            if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
-                builder.append("            ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-            } else if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO") && commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
-                builder.append("            <if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
-                builder.append("                AND ").append(commonColumnDto.getColumnName()).append(" = ").append("#{" + commonColumnDto.getFieldName() + "}\n");
-                builder.append("            </if>\n");
+            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")
+                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE_TIME
+                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE
+                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_TIME) {
+                builder.append(this.getFieldClause(FieldPosition.WHERE, isFisrt, commonColumnDto));
+            }
+
+            if (isFisrt) {
+                isFisrt = false;
             }
         }
 
@@ -314,20 +296,159 @@ public class CommonMakeFiles {
     }
 
     /**
-     * 조건문 구문을 만들어 반환한다.
+     * 위치 별로 필드에 대한 쿼리문을 가져온다.
      *
-     * @param commonColumnDto 컬럼 정보
-     * @return 조건문 구문
+     * @param fieldPosition {@link FieldPosition} 필드의 위치
+     * @param isFirst 첫 필드 여부
+     * @param commonColumnDto 필드 정보
+     * @return 필드에 대한 쿼리문
      */
-    private String getConditionClause(CommonColumnDto commonColumnDto) {
+    private String getFieldClause(FieldPosition fieldPosition, boolean isFirst, CommonColumnDto commonColumnDto) {
+        if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")
+                || fieldPosition == FieldPosition.SELECT_FIELD) {
+            return this.getNotNullField(fieldPosition, isFirst, commonColumnDto) + "\n";
+        } else {
+            return this.getNullableField(fieldPosition, isFirst, commonColumnDto) + "\n";
+        }
+    }
+
+    /**
+     * Not Null 필드에 대한 쿼리문을 가져온다.
+     * 
+     * @param fieldPosition {@link FieldPosition} 필드의 위치
+     * @param isFirst 첫 필드 여부
+     * @param commonColumnDto 필드 정보
+     * @return 필드에 대한 쿼리문
+     */
+    private String getNotNullField(FieldPosition fieldPosition, boolean isFirst, CommonColumnDto commonColumnDto) {
         StringBuilder builder = new StringBuilder();
 
-        if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
-            builder.append("<if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank("+ commonColumnDto.getFieldName() +")\">\n");
-        } else {
-            builder.append("<if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
+        if (fieldPosition == FieldPosition.SELECT_FIELD
+                || fieldPosition == FieldPosition.INSERT_FIELD) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4);
+
+            if (!isFirst) {
+                builder.append(", ");
+            }
+
+            builder.append(commonColumnDto.getColumnName());
+        }
+
+        if (fieldPosition == FieldPosition.INSERT_VALUE) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4);
+
+            if (!isFirst) {
+                builder.append(", ");
+            }
+
+            builder.append(this.getValueWord(commonColumnDto));
+        }
+
+        if (fieldPosition == FieldPosition.UPDATE_SET) {
+            builder.append(this.getConditionClause(fieldPosition, commonColumnDto));
+        }
+
+        if (fieldPosition == FieldPosition.WHERE) {
+            if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
+                builder.append(BLANK_4).append(BLANK_4).append(BLANK_4);
+
+                if (!isFirst) {
+                    builder.append("AND ");
+                }
+
+                builder.append(commonColumnDto.getColumnName()).append(" = ").append(this.getValueWord(commonColumnDto));
+            } else {
+                builder.append(this.getConditionClause(fieldPosition, commonColumnDto));
+            }
         }
 
         return builder.toString();
+    }
+
+    /**
+     * Null 필드에 대한 쿼리문을 가져온다.
+     *
+     * @param fieldPosition {@link FieldPosition} 필드의 위치
+     * @param isFirst 첫 필드 여부
+     * @param commonColumnDto 필드 정보
+     * @return 필드에 대한 쿼리문
+     */
+    private String getNullableField(FieldPosition fieldPosition, boolean isFirst, CommonColumnDto commonColumnDto) {
+        StringBuilder builder = new StringBuilder();
+
+        if (fieldPosition == FieldPosition.INSERT_FIELD
+                || fieldPosition == FieldPosition.INSERT_VALUE) {
+            builder.append(this.getConditionClause(fieldPosition, commonColumnDto));
+        }
+
+        if (fieldPosition == FieldPosition.UPDATE_SET) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4);
+
+            if (!isFirst) {
+                builder.append(", ");
+            }
+
+            builder.append(commonColumnDto.getColumnName()).append(" = ").append(this.getValueWord(commonColumnDto));
+        }
+
+        return builder.toString();
+    }
+
+    /**
+     * 필드에 대한 조건문 구문을 만들어 반환한다.
+     *
+     * @param fieldPosition {@link FieldPosition} 필드의 위치
+     * @param commonColumnDto 컬럼 정보
+     * @return 필드에 대한 조건문
+     */
+    private String getConditionClause(FieldPosition fieldPosition, CommonColumnDto commonColumnDto) {
+        StringBuilder builder = new StringBuilder();
+
+        if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("<if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank(").append(commonColumnDto.getFieldName()).append(")\">\n");
+        } else {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("<if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
+        }
+
+        if (fieldPosition == FieldPosition.INSERT_FIELD) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append(BLANK_4).append(", ").append(commonColumnDto.getColumnName()).append("\n");
+        }
+
+        if (fieldPosition == FieldPosition.INSERT_VALUE) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append(BLANK_4).append(", ").append("#{").append(commonColumnDto.getFieldName()).append("}").append("\n");
+        }
+
+        if (fieldPosition == FieldPosition.UPDATE_SET
+                || fieldPosition == FieldPosition.WHERE) {
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append(BLANK_4);
+
+            if (fieldPosition == FieldPosition.UPDATE_SET) {
+                builder.append(", ");
+            } else {
+                builder.append("AND ");
+            }
+
+            builder.append(commonColumnDto.getColumnName()).append(" = ").append("#{").append(commonColumnDto.getFieldName()).append("}").append("\n");
+        }
+
+        builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("</if>");
+
+        return builder.toString();
+    }
+
+    /**
+     * 데이터 형에 따라 Value 에 대한 구문을 가져온다.
+     *
+     * @param commonColumnDto 컬럼 정보
+     * @return Value 에 대한 구문
+     */
+    private String getValueWord(CommonColumnDto commonColumnDto) {
+        if (commonColumnDto.getJavaDataType() == JavaDataType.LOCAL_DATE_TIME
+                || commonColumnDto.getJavaDataType() == JavaDataType.LOCAL_DATE
+                || commonColumnDto.getJavaDataType() == JavaDataType.LOCAL_TIME) {
+            return "CURRENT_TIMESTAMP";
+        } else {
+            return "#{" + commonColumnDto.getFieldName() + "}";
+        }
     }
 }

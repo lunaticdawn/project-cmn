@@ -61,7 +61,7 @@ public class MakeFilesForMariaDbService extends CommonMakeFiles {
                 commonColumnDtoList.add(commonColumnDto);
             }
 
-            String content = this.getContent(fileInfoDto, commonColumnDtoList);
+            String content = this.getDtoContent(fileInfoDto, commonColumnDtoList);
 
             Files.writeString(dtoFile.toPath(), content, StandardCharsets.UTF_8);
 
