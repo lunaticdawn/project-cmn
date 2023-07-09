@@ -9,6 +9,9 @@ import com.project.cmn.http.exception.config.ExceptionItem;
 import com.project.cmn.http.exception.config.ExceptionsConfig;
 import com.project.cmn.http.util.MessageUtils;
 import com.project.cmn.http.validate.ConstraintViolationDto;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +25,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -168,7 +168,7 @@ public class CommonExceptionHandler {
         // 응답을 만든다.
         ModelAndView mav = new ModelAndView();
 
-        mav.addObject(WebCmnConstants.ResponseKeys.TIMESTAMP.code(), LocalDateTime.now());
+        mav.addObject(WebCmnConstants.ResponseKeys.TIMESTAMP.code(), LocalDateTime.now().toString());
         mav.addObject(WebCmnConstants.ResponseKeys.RES_STATUS.code(), status);
         mav.addObject(WebCmnConstants.ResponseKeys.RES_CODE.code(), resCode);
         mav.addObject(WebCmnConstants.ResponseKeys.RES_MSG.code(), message);
