@@ -407,7 +407,7 @@ public class CommonMakeFiles {
         if (commonColumnDto.getJavaDataType() == JavaDataType.STRING) {
             builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("<if test=\"@org.apache.commons.lang3.StringUtils@isNotBlank(").append(commonColumnDto.getFieldName()).append(")\">\n");
         } else {
-            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("<if test=\"").append(commonColumnDto.getColumnName()).append(" != null").append("\">\n");
+            builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append("<if test=\"").append(commonColumnDto.getFieldName()).append(" != null").append("\">\n");
         }
 
         if (fieldPosition == FieldPosition.INSERT_FIELD) {
