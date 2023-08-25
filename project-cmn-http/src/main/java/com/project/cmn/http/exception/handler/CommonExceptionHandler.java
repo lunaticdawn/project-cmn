@@ -149,11 +149,13 @@ public class CommonExceptionHandler {
      * @return Exception 에 대한 Response
      */
     protected ModelAndView getResponse(Exception exception, String message, HttpServletResponse response) {
+        String errorMessage = "Exception name: [" + exception.getClass().getSimpleName() + "] " + exception.getMessage();
+
         if (exception instanceof ConstraintViolationException
                 || exception instanceof BindException) {
-            log.error(exception.getMessage());
+            log.error(errorMessage);
         } else {
-            log.error(exception.getMessage(), exception);
+            log.error(errorMessage, exception);
         }
 
         message = this.resolveMessage(exception, message);
