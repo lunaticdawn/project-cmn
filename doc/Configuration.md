@@ -18,7 +18,6 @@
 
 | 속성                    | 타입                               | 필수여부 | 기본값   | 설명                                                                |
 |-----------------------|----------------------------------|------|-------|-------------------------------------------------------------------|
-| enabled               | Boolean                          | 필수   | false | Access Log 사용 여부                                                  |
 | filter                | Boolean                          | 옵션   | false | AccessLogFilter 사용 여부.<br/>사용으로 해야 Body 부분을 로깅할 수 있다.             |
 | aspect                |Boolean|옵션|false| AccessLogAspect 사용 여부                                             |
 | filter-order          | Integer                          | 옵션   | 0     | AccessLogFilter 의 필터 내 순서                                         |
