@@ -163,7 +163,7 @@ public class CommonExceptionHandler {
         AccessLogDto accessLogDto = AccessLog.getAccessLogDto();
 
         // DB 에 이력을 넣을 수 있도록 AccessLogDto 에 결과를 담는다.
-        accessLogDto.setHttpStatus(status);
+        accessLogDto.setResStatus(status);
         accessLogDto.setResCode(resCode);
         accessLogDto.setResMsg(message);
 

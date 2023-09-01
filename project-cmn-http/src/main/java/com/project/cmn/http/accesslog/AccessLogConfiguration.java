@@ -1,31 +1,23 @@
 package com.project.cmn.http.accesslog;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * # project.access.log.enabled 의 값이 true 이면 설정에 따라 접근 로그를 출력할 수 있는 설정을 적용한다.
+ * 접근 로그를 출력할 수 있는 설정을 적용한다.
  */
 @Slf4j
+@RequiredArgsConstructor
 @Configuration
-@ConditionalOnProperty(prefix = "project.access.log", value = "enabled", havingValue = "true")
-public class AccessLogConfiguration implements WebMvcConfigurer, EnvironmentAware {
-    private AccessLog accessLog;
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        AccessLogConfig accessLogConfig = AccessLogConfig.init(environment);
-
-        accessLog = new AccessLog(accessLogConfig);
-    }
+public class AccessLogConfiguration implements WebMvcConfigurer {
+    private final AccessLogConfig accessLogConfig;
 
     /**
      * 접근 로그를 출력하기 위해 {@link AccessLogInterceptor} 를 추가
@@ -35,23 +27,30 @@ public class AccessLogConfiguration implements WebMvcConfigurer, EnvironmentAwar
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         log.info("# Add Interceptor: AccessLogInterceptor");
-        InterceptorRegistration interceptorRegistration = registry.addInterceptor(new AccessLogInterceptor(accessLog));
+        log.debug("# AccessLogConfig: {}", accessLogConfig);
+
+        InterceptorRegistration interceptorRegistration = registry.addInterceptor(accessLogInterceptor());
 
         // AccessLogInterceptor 를 적용할 URL
-        if (accessLog.getAccessLogConfig().getPathPatterns() != null && !accessLog.getAccessLogConfig().getPathPatterns().isEmpty()) {
-            log.debug("# Path Patterns: {}", accessLog.getAccessLogConfig().getPathPatterns());
+        log.debug("# Path Patterns: {}", accessLogConfig.getPathPatterns());
 
-            for (String pathPattern : accessLog.getAccessLogConfig().getPathPatterns()) {
+        if (accessLogConfig.getPathPatterns() != null && !accessLogConfig.getPathPatterns().isEmpty()) {
+            for (String pathPattern : accessLogConfig.getPathPatterns()) {
                 interceptorRegistration.addPathPatterns(pathPattern);
             }
         }
 
         // AccessLogInterceptor 를 적용하지 않을 URL
-        if (accessLog.getAccessLogConfig().getExcludePathPatterns() != null && !accessLog.getAccessLogConfig().getExcludePathPatterns().isEmpty()) {
-            log.debug("# Exclude Path Patterns: {}", accessLog.getAccessLogConfig().getExcludePathPatterns());
+        log.debug("# Exclude Path Patterns: {}", accessLogConfig.getExcludePathPatterns());
 
-            interceptorRegistration.excludePathPatterns(accessLog.getAccessLogConfig().getExcludePathPatterns());
+        if (accessLogConfig.getExcludePathPatterns() != null && !accessLogConfig.getExcludePathPatterns().isEmpty()) {
+            interceptorRegistration.excludePathPatterns(accessLogConfig.getExcludePathPatterns());
         }
+    }
+
+    @Bean
+    public AccessLogInterceptor accessLogInterceptor() {
+        return new AccessLogInterceptor();
     }
 
     /**
@@ -62,18 +61,18 @@ public class AccessLogConfiguration implements WebMvcConfigurer, EnvironmentAwar
     @ConditionalOnProperty(prefix = "project.access.log", value = "filter", havingValue = "true")
     @Bean
     public FilterRegistrationBean<AccessLogFilter> accessLogFilter() {
-        log.info("# Register Filter: AccessLogFilter. Order: {}", accessLog.getAccessLogConfig().getFilterOrder());
+        log.info("# Register Filter: AccessLogFilter. Order: {}", accessLogConfig.getFilterOrder());
 
         FilterRegistrationBean<AccessLogFilter> filterRegBean = new FilterRegistrationBean<>();
 
         filterRegBean.setFilter(new AccessLogFilter());
-        filterRegBean.setOrder(accessLog.getAccessLogConfig().getFilterOrder());
+        filterRegBean.setOrder(accessLogConfig.getFilterOrder());
 
         // AccessLogFilter 를 적용할 URL
-        if (accessLog.getAccessLogConfig().getUrlPatterns() != null && !accessLog.getAccessLogConfig().getUrlPatterns().isEmpty()) {
-            log.debug("# Url Patterns: {}", accessLog.getAccessLogConfig().getUrlPatterns());
+        if (accessLogConfig.getUrlPatterns() != null && !accessLogConfig.getUrlPatterns().isEmpty()) {
+            log.debug("# Url Patterns: {}", accessLogConfig.getUrlPatterns());
 
-            for (String urlPattern : accessLog.getAccessLogConfig().getUrlPatterns()) {
+            for (String urlPattern : accessLogConfig.getUrlPatterns()) {
                 filterRegBean.addUrlPatterns(urlPattern);
             }
         }

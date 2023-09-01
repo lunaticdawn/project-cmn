@@ -31,7 +31,7 @@ public class AccessLogDto {
     /**
      * HTTP Request 메소드
      */
-    private String requestMethod;
+    private String httpMethod;
 
     /**
      * Request URI
@@ -56,12 +56,12 @@ public class AccessLogDto {
     /**
      * Request 내용
      */
-    private String requestPayload;
+    private String requestBody;
 
     /**
      * HTTP 상태 코드
      */
-    private int httpStatus;
+    private int resStatus;
 
     /**
      * 프로그램 응답코드
@@ -74,6 +74,11 @@ public class AccessLogDto {
     private String resMsg;
 
     /**
+     * 결과가 리스트인 경우, 그 갯수
+     */
+    private Integer resCnt;
+
+    /**
      * HTTP Response Header 정보
      */
     private Map<String, String> responseHeader;
@@ -81,7 +86,7 @@ public class AccessLogDto {
     /**
      * Response 내용
      */
-    private String responsePayload;
+    private String responseBody;
 
     /**
      * 소요시간

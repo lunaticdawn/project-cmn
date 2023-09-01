@@ -2,6 +2,7 @@ package com.project.cmn.http.accesslog;
 
 
 import com.project.cmn.util.JsonUtils;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -21,22 +22,14 @@ public class AccessLogInterceptor implements HandlerInterceptor {
     /**
      * Access Log 관련 설정
      */
-    private final AccessLogConfig accessLogConfig;
+    @Resource(name = "accessLogConfig")
+    private AccessLogConfig accessLogConfig;
 
     /**
      * {@link HttpServletRequest} 와 {@link HttpServletResponse} 의 파싱을 담당하는 클래스
      */
-    private final AccessLog accessLog;
-
-    /**
-     * 생성자
-     *
-     * @param accessLog {@link AccessLog}
-     */
-    public AccessLogInterceptor(AccessLog accessLog) {
-        this.accessLog = accessLog;
-        this.accessLogConfig = accessLog.getAccessLogConfig();
-    }
+    @Resource(name = "accessLog")
+    private AccessLog accessLog;
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
@@ -88,7 +81,7 @@ public class AccessLogInterceptor implements HandlerInterceptor {
 
         buff.append("\n");
         buff.append("-------------------- REQUEST INFO START --------------------").append("\n");
-        buff.append(String.format("-- URL: %s %s", accessLogDto.getRequestMethod(), accessLogDto.getRequestUri())).append("\n");
+        buff.append(String.format("-- URL: %s %s", accessLogDto.getHttpMethod(), accessLogDto.getRequestUri())).append("\n");
 
         if (accessLogConfig.isRequestHeader()) {
             buff.append(String.format("-- HEADER: %s", accessLogDto.getRequestHeader())).append("\n");
@@ -116,11 +109,11 @@ public class AccessLogInterceptor implements HandlerInterceptor {
             buff.append("\n");
             buff.append("-------------------- REQUEST BODY START --------------------").append("\n");
 
-            if (StringUtils.isNotBlank(accessLogDto.getRequestPayload())) {
+            if (StringUtils.isNotBlank(accessLogDto.getRequestBody())) {
                 try {
-                    buff.append(JsonUtils.toJsonStrPretty(accessLogDto.getRequestPayload()));
+                    buff.append(JsonUtils.toJsonStrPretty(accessLogDto.getRequestBody()));
                 } catch (IOException e) {
-                    buff.append(accessLogDto.getRequestPayload());
+                    buff.append(accessLogDto.getRequestBody());
                 }
             } else {
                 buff.append("Request content is null or missing.");
@@ -144,18 +137,18 @@ public class AccessLogInterceptor implements HandlerInterceptor {
         buff.append("-------------------- RESPONSE INFO START --------------------").append("\n");
 
         if (accessLogConfig.isResponseHeader()) {
-            buff.append(String.format("-- URL: %s %s", accessLogDto.getRequestMethod(), accessLogDto.getRequestUri())).append("\n");
+            buff.append(String.format("-- URL: %s %s", accessLogDto.getHttpMethod(), accessLogDto.getRequestUri())).append("\n");
             buff.append(String.format("-- HEADER: %s", accessLogDto.getResponseHeader())).append("\n");
-            buff.append(String.format("-- STATUS: %s", HttpStatus.resolve(accessLogDto.getHttpStatus()))).append("\n");
+            buff.append(String.format("-- STATUS: %s", HttpStatus.resolve(accessLogDto.getResStatus()))).append("\n");
             buff.append("\n");
         }
 
         if (accessLogConfig.isResponseBody()) {
-            if (StringUtils.isNotBlank(accessLogDto.getResponsePayload())) {
+            if (StringUtils.isNotBlank(accessLogDto.getResponseBody())) {
                 try {
-                    buff.append(JsonUtils.toJsonStrPretty(accessLogDto.getResponsePayload()));
+                    buff.append(JsonUtils.toJsonStrPretty(accessLogDto.getResponseBody()));
                 } catch (IOException e) {
-                    buff.append(accessLogDto.getResponsePayload());
+                    buff.append(accessLogDto.getResponseBody());
                 }
             } else {
                 buff.append("-- BODY: Unhandled response.");
