@@ -153,7 +153,7 @@ public class CommonMakeFiles {
         builder.append(BLANK_4).append(BLANK_4).append("FROM\n");
         builder.append(BLANK_4).append(BLANK_4).append(BLANK_4).append(tableName).append("\n");
         builder.append(BLANK_4).append(BLANK_4).append("WHERE\n");
-        builder.append(this.getWhereClause(columnsList));
+        builder.append(this.getWhereClause("S", columnsList));
 
         return this.wrapQuery("select", fileInfoDto, builder.toString());
     }
@@ -238,7 +238,7 @@ public class CommonMakeFiles {
 
         builder.append(BLANK_4).append(BLANK_4).append("</set>\n");
         builder.append(BLANK_4).append(BLANK_4).append("WHERE\n");
-        builder.append(this.getWhereClause(columnsList));
+        builder.append(this.getWhereClause("U", columnsList));
 
         return this.wrapQuery("update", fileInfoDto, builder.toString());
     }
@@ -272,19 +272,26 @@ public class CommonMakeFiles {
     /**
      * Where 절을 만들어 반환한다.
      *
+     * @param queryType S: select, U: update
      * @param columnsList 테이블의 컬럼 리스트
      * @return Where 절
      */
-    private String getWhereClause(List<CommonColumnDto> columnsList) {
+    private String getWhereClause(String queryType, List<CommonColumnDto> columnsList) {
         boolean isFisrt = true;
         StringBuilder builder = new StringBuilder();
 
         for (CommonColumnDto commonColumnDto : columnsList) {
-            if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")
-                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE_TIME
-                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE
-                    && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_TIME) {
-                builder.append(this.getFieldClause(FieldPosition.WHERE, isFisrt, commonColumnDto));
+            if (StringUtils.equals(queryType, "S")) {
+                if (StringUtils.equals(commonColumnDto.getIsNullable(), "NO")
+                        && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE_TIME
+                        && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_DATE
+                        && commonColumnDto.getJavaDataType() != JavaDataType.LOCAL_TIME) {
+                    builder.append(this.getFieldClause(FieldPosition.WHERE, isFisrt, commonColumnDto));
+                }
+            } else {
+                if (StringUtils.equals(commonColumnDto.getColumnKey(), "PRI")) {
+                    builder.append(this.getFieldClause(FieldPosition.WHERE, isFisrt, commonColumnDto));
+                }
             }
 
             if (isFisrt) {
@@ -314,7 +321,7 @@ public class CommonMakeFiles {
 
     /**
      * Not Null 필드에 대한 쿼리문을 가져온다.
-     * 
+     *
      * @param fieldPosition {@link FieldPosition} 필드의 위치
      * @param isFirst 첫 필드 여부
      * @param commonColumnDto 필드 정보
