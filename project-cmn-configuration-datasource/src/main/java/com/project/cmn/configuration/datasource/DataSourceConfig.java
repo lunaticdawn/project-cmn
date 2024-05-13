@@ -3,6 +3,8 @@ package com.project.cmn.configuration.datasource;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
@@ -15,6 +17,8 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@AutoConfiguration
+@ConditionalOnProperty(prefix = "project.datasource", name = "enabled", havingValue = "true")
 @ConfigurationProperties(prefix = "project.datasource")
 public class DataSourceConfig {
     /**

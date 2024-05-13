@@ -7,8 +7,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
@@ -16,7 +17,8 @@ import java.util.List;
  * URL 호출 시 거치는 메소드에 대한 정보를 남기기 위한 AOP
  */
 @Aspect
-@Configuration
+@AutoConfiguration
+@ConditionalOnClass(AccessLogConfig.class)
 @ConditionalOnProperty(prefix = "project.access.log", name = "aspect", havingValue = "true")
 public class AccessLogAspect {
     @Pointcut("execution(* com.project..*Controller.*(..))")
@@ -85,7 +87,7 @@ public class AccessLogAspect {
      * @param result 메소드 실행 결과
      */
     private void setResCnt(MethodSignature signature, Object result) {
-        if (StringUtils.endsWith(signature.getDeclaringType().getSimpleName(), "Mapper") && result instanceof List resultList) {
+        if (StringUtils.endsWith(signature.getDeclaringType().getSimpleName(), "Mapper") && result instanceof List<?> resultList) {
             if (resultList.isEmpty()) {
                 AccessLog.getAccessLogDto().setResCnt(0);
             } else {

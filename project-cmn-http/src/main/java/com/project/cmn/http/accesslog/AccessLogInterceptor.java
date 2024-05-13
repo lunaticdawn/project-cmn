@@ -2,34 +2,37 @@ package com.project.cmn.http.accesslog;
 
 
 import com.project.cmn.util.JsonUtils;
-import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
  * {@link HttpServletRequest}와 {@link HttpServletResponse}를 분석하여 접근로그에 대한 정보를 {@link AccessLogDto}에 담고, 로깅한다.
  */
 @Slf4j
+@RequiredArgsConstructor
+@AutoConfiguration
+@ConditionalOnClass(AccessLogConfig.class)
 public class AccessLogInterceptor implements HandlerInterceptor {
     /**
      * Access Log 관련 설정
      */
-    @Resource(name = "accessLogConfig")
-    private AccessLogConfig accessLogConfig;
+    private final AccessLogConfig accessLogConfig;
 
     /**
      * {@link HttpServletRequest} 와 {@link HttpServletResponse} 의 파싱을 담당하는 클래스
      */
-    @Resource(name = "accessLog")
-    private AccessLog accessLog;
+    private final AccessLog accessLog;
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {

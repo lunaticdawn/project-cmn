@@ -81,27 +81,13 @@ project:
     - BeanDefinitionRegistryPostProcessor 를 이용하여 동적으로 Bean 을 등록하는 방법
         - 현재 라이브러리에서 사용하는 방법
         - dependency 에 project-cmn-configuration-datasource 를 추가한다.
-        - application.yml 에서 다음 AutoConfiguration 은 제외하도록 설정한다.
-            - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-            - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
-            - org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration
 3. 연결해야 할 DataSource 가 2개 이상이고 같은 Transaction 에 묶여야 한다면 XADataSource 를 이용하고, 라이브러리에 spring-boot-starter-jta-atomikos 를
    포함되어 있어 자동으로 JtaTransactionManager 가 설정된다.(Atomikos AutoConfiguration)
 4. SpringBoot 3.x(SpringFramework 6.x) 부터 Transaction 패키지가 javax 에서 jakarta 로 변경되었고 Atomikos 는 아직 변경 전이다.
    따라서 Atomikos 를 사용하려면 SpringBoot 2.x(SpringFramework 5.x)를 사용해야 한다.
 
-```yaml
-
-spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration
-```
-
 ## 주의
-### 반드시 Datasource 관련 AutoConfiguration 을 제외해야 한다.
+### 주 DB 는 spring.datasource 설정을 사용한다.
 ### driver-class-name 에 해당하는 JDBC Driver 를 dependency 에 포함해야 한다.
 ### MyBatis 를 사용하는 경우에는 MyBatis 설정도 같이 해줘야 한다.
 
@@ -267,6 +253,10 @@ project:
           - "com.project.cmn.oracle"
         mapper-base-package: "com.project.cmn.oracle"
 ```
+
+## 주의
+### 주 DB 에 대한 MyBatis 설정은 mybatis 설정을 사용한다.
+
 # Exception Handler 설정에 대해
 
 1. Exception 별로 status, code, view 를 다르게 가기 위해서는 설정이 필요

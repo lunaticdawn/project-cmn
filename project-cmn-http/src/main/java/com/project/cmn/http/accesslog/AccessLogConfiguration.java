@@ -2,10 +2,11 @@ package com.project.cmn.http.accesslog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,9 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Configuration
+@AutoConfiguration
+@ConditionalOnClass(AccessLogConfig.class)
 public class AccessLogConfiguration implements WebMvcConfigurer {
     private final AccessLogConfig accessLogConfig;
+    private final AccessLogInterceptor accessLogInterceptor;
 
     /**
      * 접근 로그를 출력하기 위해 {@link AccessLogInterceptor} 를 추가
@@ -29,7 +32,7 @@ public class AccessLogConfiguration implements WebMvcConfigurer {
         log.info("# Add Interceptor: AccessLogInterceptor");
         log.debug("# AccessLogConfig: {}", accessLogConfig);
 
-        InterceptorRegistration interceptorRegistration = registry.addInterceptor(accessLogInterceptor());
+        InterceptorRegistration interceptorRegistration = registry.addInterceptor(accessLogInterceptor);
 
         // AccessLogInterceptor 를 적용할 URL
         log.debug("# Path Patterns: {}", accessLogConfig.getPathPatterns());
@@ -48,16 +51,12 @@ public class AccessLogConfiguration implements WebMvcConfigurer {
         }
     }
 
-    @Bean
-    public AccessLogInterceptor accessLogInterceptor() {
-        return new AccessLogInterceptor();
-    }
-
     /**
      * 접근 로그의 LOG_KEY 를 설정하고, Body 를 출력하기 위한 {@link AccessLogFilter} 를 등록한다.
      *
      * @return {@link FilterRegistrationBean<AccessLogFilter>}
      */
+    @ConditionalOnClass(AccessLogConfig.class)
     @ConditionalOnProperty(prefix = "project.access.log", value = "filter", havingValue = "true")
     @Bean
     public FilterRegistrationBean<AccessLogFilter> accessLogFilter() {

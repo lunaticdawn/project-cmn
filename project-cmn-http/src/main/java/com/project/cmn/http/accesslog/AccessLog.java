@@ -2,18 +2,19 @@ package com.project.cmn.http.accesslog;
 
 import com.project.cmn.http.WebCmnConstants;
 import com.project.cmn.util.HostInfoUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,13 +24,14 @@ import java.util.stream.Collectors;
  * {@link HttpServletRequest}와 {@link HttpServletResponse}를 분석하여 접근로그에 대한 정보를 {@link AccessLogDto}에 담는다.
  */
 @Slf4j
+@Getter
 @RequiredArgsConstructor
-@Component
+@AutoConfiguration
+@ConditionalOnClass(AccessLogConfig.class)
 public class AccessLog {
     /**
      * Access Log 설정
      */
-    @Getter
     private final AccessLogConfig accessLogConfig;
 
     /**
