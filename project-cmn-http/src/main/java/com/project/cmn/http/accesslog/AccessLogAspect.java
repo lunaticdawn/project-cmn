@@ -8,7 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Aspect
 @AutoConfiguration
-@ConditionalOnClass(AccessLogConfig.class)
+@ConditionalOnBean(AccessLogConfig.class)
 @ConditionalOnProperty(prefix = "project.access.log", name = "aspect", havingValue = "true")
 public class AccessLogAspect {
     @Pointcut("execution(* com.project..*Controller.*(..))")

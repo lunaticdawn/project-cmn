@@ -13,7 +13,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
@@ -28,7 +28,7 @@ import org.springframework.lang.NonNull;
  */
 @Slf4j
 @AutoConfiguration
-@ConditionalOnClass(DataSourceConfig.class)
+@ConditionalOnBean(DataSourceConfig.class)
 @ConditionalOnProperty(prefix = "project.datasource", name = "type", havingValue = "ds")
 public class RegistryDataSource implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private DataSourceConfig dataSourceConfig;
